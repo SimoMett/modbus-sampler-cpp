@@ -1,14 +1,17 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "imgui/imgui.h"
-#include "backends/imgui_impl_sdl2.h"
-#include "backends/imgui_impl_opengl2.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #ifdef _WIN32
 #include <windows.h>        // SetProcessDPIAware()
 #endif
+
+#include "imgui/imgui.h"
+#include "backends/imgui_impl_sdl2.h"
+#include "backends/imgui_impl_opengl2.h"
+
+#include "simomett/common.h"
 
 const std::string program_name = "Modbus graph plotter";
 

@@ -4,10 +4,11 @@
 #include "argparse/argparse.hpp"
 #include "nlohmann/json.hpp"
 #include "modbus/ModbusClient.h"
-#include "src/workers/ModbusWorker.h"
-#include "src/workers/CsvWorker.h"
+#include "workers/ModbusWorker.h"
+#include "workers/CsvWorker.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include "include/spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "simomett/common.h"
 
 const std::string program_name = "ModbusSamplerDaemon";
 const std::string program_version = "0.1";
@@ -16,18 +17,6 @@ std::function<void(int)> shutdown_handler;
 void signal_handler(int signal)
 {
     shutdown_handler(signal);
-}
-
-inline json json_from_file(const std::string &file_path)
-{
-    std::string path(file_path);
-    if (file_path.at(0) == '\'' && file_path.at(file_path.length() - 1))
-    {
-        path = file_path.substr(1, file_path.length() - 2);
-    }
-    std::ifstream if_file(path, std::ios_base::in);
-    json json = json::parse(if_file);
-    return json;
 }
 
 int main(int argc, char **argv)
