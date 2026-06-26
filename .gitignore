@@ -8,3 +8,11 @@ dist/*
 lib/*
 test.*
 include/nlohmann_old/json.hpp
+include/imgui/.github/*
+include/imgui/docs/*
+include/imgui/examples/*
+include/imgui/misc/*
+include/imgui/.gitignore
+include/imgui/.gitattributes
+include/imgui/.editorconfig
+include/imgui/LICENSE.txt
