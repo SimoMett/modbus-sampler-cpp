@@ -1,0 +1,16 @@
+{
+    "scantime_ms": 500,
+    "register_order": "R1R0",
+    "endianess": "little",
+    "one_indexed": true,
+    "words": [
+        {
+            "tag": "Temp_PV",
+            "address": 400032
+        },
+        {
+            "tag": "LinAxis_PV_mm",
+            "address": 400120
+        }
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "postgres":{
+        "host": "localhost",
+        "port": 32768,
+        "user": "postgres",
+        "password": "postgre",
+        "storing_interval": 1.5
+        
+    },
+    "csv":{
+        "output_directory": "C:\\Users\\simonetti\\Desktop\\BORMIOLI Fidenza - tunnel ribruciatrice sperimentale\\cpp-tools\\csv_output",
+        "storing_interval": 1.5
+    },
+    "gui":{
+        "refresh_rate": 1000,
+        "deque_max_len": 180,
+        "light_theme": false
+    },
+    "modbus_connection":{
+        "host": "127.0.0.1",
+        "port": 502,
+        "scantime_ms": 500
+    }
+}

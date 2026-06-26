@@ -1,0 +1,10 @@
+*.dll
+*.lib
+*.exe
+bin/*
+build/*
+csv_output/*
+dist/*
+lib/*
+test.*
+include/nlohmann_old/json.hpp
