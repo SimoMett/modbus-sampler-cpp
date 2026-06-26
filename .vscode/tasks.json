@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++.exe build active file",
+            "label": "C/C++: g++.exe build modbus sampler",
             "command": "C:/msys64/ucrt64/bin/g++.exe",
             "args": [
                 "-pipe",
@@ -11,7 +11,7 @@
                 "-std=c++20",
                 "-I${workspaceFolder}\\include",
                 "-g",
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}\\modbus_csv_sampler_daemon.cpp",
                 "${workspaceFolder}\\src\\workers\\ConsumerWorker.cpp",
                 "${workspaceFolder}\\src\\workers\\CsvWorker.cpp",
                 "${workspaceFolder}\\src\\workers\\ModbusWorker.cpp",
