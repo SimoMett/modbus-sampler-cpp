@@ -43,7 +43,7 @@
                 "-I${workspaceFolder}\\include\\imgui\\backends",
                 "-ISDL2",
                 "-g",
-                "${workspaceFolder}\\modbus_graph_plotter.cpp",
+                "${workspaceFolder}\\src\\modbus_graph_plotter.cpp",
                 "${workspaceFolder}\\include\\imgui\\backends\\imgui_impl_sdl2.cpp",
                 "${workspaceFolder}\\include\\imgui\\backends\\imgui_impl_opengl2.cpp",
                 "${workspaceFolder}\\include\\imgui\\imgui.cpp",
