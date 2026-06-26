@@ -4,6 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}\\include\\**",
+                "${workspaceFolder}\\include\\imgui\\**",
+                "${workspaceFolder}\\include\\imgui\\backends\\**",
                 "${workspaceFolder}\\src\\**"
             ],
             "defines": [
