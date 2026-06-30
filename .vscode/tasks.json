@@ -44,6 +44,10 @@
                 "-ISDL2",
                 "-g",
                 "${workspaceFolder}\\src\\modbus_graph_plotter.cpp",
+                "${workspaceFolder}\\src\\workers\\ConsumerWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\GuiWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\ModbusWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\SamplesRingQueue.cpp",
                 "${workspaceFolder}\\include\\imgui\\backends\\imgui_impl_sdl2.cpp",
                 "${workspaceFolder}\\include\\imgui\\backends\\imgui_impl_opengl2.cpp",
                 "${workspaceFolder}\\include\\imgui\\imgui.cpp",
@@ -51,12 +55,15 @@
                 "${workspaceFolder}\\include\\imgui\\imgui_widgets.cpp",
                 "${workspaceFolder}\\include\\imgui\\imgui_draw.cpp",
                 "${workspaceFolder}\\include\\imgui\\imgui_demo.cpp",
+                "${workspaceFolder}\\include\\implot\\implot.cpp",
+                "${workspaceFolder}\\include\\implot\\implot_items.cpp",
+                "${workspaceFolder}\\include\\implot\\implot_demo.cpp",
                 "-o",
                 "${workspaceFolder}\\dist\\modbus_graph_plotter.exe",
+                "${workspaceFolder}\\libmodbus.dll",
                 "-l:libwinpthread.a",
                 "-lopengl32",
-                "-lSDL2",
-                "-mwindows"
+                "-lSDL2"
             ],
             "options": {
                 "cwd": "C:/msys64/ucrt64/bin"

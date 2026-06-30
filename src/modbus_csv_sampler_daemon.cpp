@@ -59,13 +59,13 @@ int main(int argc, char **argv)
     try
     {
         logger->info("Initializing..");
-        json config_json = json_from_file(parser.get<std::string>("--config"));
-        json tags_json = json_from_file(parser.get<std::string>("tags_json"));
+        json config_json = simomett::json_from_file(parser.get<std::string>("--config"));
+        json tags_json = simomett::json_from_file(parser.get<std::string>("tags_json"));
 
         // workers setup
         std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
-
         consumerWorkers.push_back(std::make_shared<CsvWorker>(std::shared_ptr<spdlog::logger>(logger), config_json["csv"]["output_directory"].get<std::string>(), config_json["csv"]["storing_interval"].get<float>(), tags_json));
+        
         for (auto worker : consumerWorkers)
             worker->start();
 

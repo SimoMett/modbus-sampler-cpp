@@ -11,9 +11,16 @@
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl2.h"
 
+#include "argparse/argparse.hpp"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "workers/GuiWorker.h"
 #include "simomett/common.h"
+#include "workers/ModbusWorker.h"
 
 const std::string program_name = "Modbus graph plotter";
+const std::string program_version = "0.1";
 
 // Main code
 #ifdef _WIN32
@@ -26,160 +33,84 @@ int main(int argc, char ** argv)
 #ifdef _WIN32
     ::SetProcessDPIAware();
 #endif
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    
+    argparse::ArgumentParser parser(program_name, program_version);
+    parser.add_argument("--config").default_value("modbus_sampler_daemon_config.json").help("use different configuration file");
+    parser.add_argument("--log").default_value("modbus_sampler_daemon.log").help("put logs in a different file");
+    parser.add_argument("tags_json").required();
+
+    bool failed_to_parse_args = false;
+    try
     {
-        std::cerr <<"Error: " << SDL_GetError() << "\n";
-        return 1;
+        #ifdef _WIN32
+        parser.parse_args(__argc, __argv);
+        #else
+        parser.parse_args(argc, argv);
+        #endif
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << e.what() << '\n';
+        failed_to_parse_args = true;
     }
 
-    // Setup window
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow(program_name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
-    if (window == nullptr)
+    if (failed_to_parse_args)
     {
-        std::cerr << "Error: SDL_CreateWindow(): " << SDL_GetError() << "\n";
-        return 1;
+        std::cout << parser;
+        return 0;
     }
 
-    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    // logger setup
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    console_sink->set_level(spdlog::level::info);
+    std::ostringstream pattern;
+    pattern << "[" << program_name << "] [%^%l%$] %v";
+    console_sink->set_pattern(pattern.str());
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(parser.get<std::string>("--log"), true);
+    file_sink->set_level(spdlog::level::trace);
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+    std::shared_ptr<spdlog::logger> logger(new spdlog::logger("multi_sink", {file_sink, console_sink}));
+    logger->set_level(spdlog::level::info);
 
-    // Setup scaling
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-    style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL2_Init();
-
-    // Load Fonts
-    // - If fonts are not explicitly loaded, Dear ImGui will select an embedded font: either AddFontDefaultVector() or AddFontDefaultBitmap().
-    //   This selection is based on (style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi) reaching a small threshold.
-    // - You can load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - If a file cannot be loaded, AddFont functions will return a nullptr. Please handle those errors in your code (e.g. use an assertion, display an error and quit).
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use FreeType for higher quality font rendering.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //style.FontSizeBase = 20.0f;
-    //io.Fonts->AddFontDefaultVector();
-    //io.Fonts->AddFontDefaultBitmap();
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf");
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf");
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
-    //IM_ASSERT(font != nullptr);
-
-    // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    // Main loop
-    bool done = false;
-    while (!done)
+    try
     {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-                done = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
-                done = true;
-        }
-        if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
-        {
-            SDL_Delay(100);
-            continue;
-        }
+        logger->info("Initializing..");
+        json config_json = simomett::json_from_file(parser.get<std::string>("--config"));
+        json tags_json = simomett::json_from_file(parser.get<std::string>("tags_json"));
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL2_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
+        // workers setup
+        std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
+        consumerWorkers.push_back(std::make_shared<GuiWorker>(std::shared_ptr<spdlog::logger>(logger), program_name, config_json["gui"], tags_json));
+        
+        for (auto worker : consumerWorkers)
+            worker->start();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
+        Modbus::TcpSettings modbus_settings;
+        modbus_settings.host = config_json["modbus_connection"]["host"].get<std::string>().c_str();
+        modbus_settings.port = config_json["modbus_connection"]["port"].get<uint16_t>();
+        modbus_settings.timeout = 3000;
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        ModbusWorker modbus_worker(logger, &modbus_settings, tags_json, consumerWorkers);
+        modbus_worker.start();
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+        modbus_worker.join();
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+        //Termination
+        for (auto worker : consumerWorkers)
+            worker->stop();
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+        for (auto worker : consumerWorkers)
+            worker->join();
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
-
-        // Rendering
-        std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-        ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
-        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window);
-
-        std::chrono::nanoseconds delta = (std::chrono::system_clock::now() - start);
-        std::chrono::milliseconds maxDelta = std::chrono::milliseconds(30);
-        if(delta < maxDelta)
-            std::this_thread::sleep_for(maxDelta - delta);
+        consumerWorkers.clear();
+        logger->info("Exiting");
     }
-
-    // Cleanup
-    ImGui_ImplOpenGL2_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    catch (const std::exception &e)
+    {
+        std::cout << "exc\n";
+        logger->info(e.what());
+    }
 
     return 0;
 }

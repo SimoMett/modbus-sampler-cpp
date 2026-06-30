@@ -145,7 +145,7 @@ void CsvWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
             //std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = CsvWorker::format_name(this->words_names[sample.address]); // also 'filename'
+        std::string tag_name = ConsumerWorker::format_name(this->words_names[sample.address]); // also 'filename'
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
@@ -164,7 +164,7 @@ void CsvWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
             //std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = CsvWorker::format_name(this->floats_names[sample.address]); // also 'filename'
+        std::string tag_name = ConsumerWorker::format_name(this->floats_names[sample.address]); // also 'filename'
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
@@ -183,30 +183,13 @@ void CsvWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
             //std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = CsvWorker::format_name(this->dwords_names[sample.address]); // also 'filename'
+        std::string tag_name = ConsumerWorker::format_name(this->dwords_names[sample.address]); // also 'filename'
 
         std::ostringstream csv_line;
         csv_line << CsvWorker::format_time(instant) << "," << sample.val;
 
         this->samples_queues[this->current_queue][tag_name].push_back(csv_line.str());
     }
-}
-
-std::string CsvWorker::format_name(const std::string &name)
-{
-    // return str(tag_name).lower().replace(".","").replace("/","-").replace(" ","_")
-    std::string sss(name);
-    // std::cout << sss << std::endl;
-    sss.erase(std::remove_if(sss.begin(), sss.end(), [](unsigned char c)
-                   { return c == '.'; }), sss.end());
-    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
-                   { return std::tolower(c); });
-    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
-                   { return c == '/' ? '-' : c; });
-    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
-                   { return c == ' ' ? '_' : c; });
-
-    return sss;
 }
 
 std::string CsvWorker::format_time(const std::chrono::system_clock::time_point & tp)
