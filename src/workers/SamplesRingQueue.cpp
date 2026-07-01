@@ -22,12 +22,12 @@ Sample SamplesRingQueue::operator[](unsigned short index) const
     return Sample(queue[index]);
 }
 
-const std::vector<float> & SamplesRingQueue::x_data() const
+const std::vector<double> & SamplesRingQueue::x_data() const
 {
     return data_x;
 }
 
-const std::vector<float> & SamplesRingQueue::y_data() const
+const std::vector<double> & SamplesRingQueue::y_data() const
 {
     return data_y;
 }
@@ -63,7 +63,7 @@ void SamplesRingQueue::refresh()
             break;
         }
 
-        labels.push_back(simomett::format_time(time, "%H:%M:%S"));
-        data_x.push_back((float)i);
+        auto tt = time + std::chrono::hours(2);
+        data_x.push_back((double)std::chrono::duration_cast<std::chrono::seconds>(tt.time_since_epoch()).count());
     }
 }

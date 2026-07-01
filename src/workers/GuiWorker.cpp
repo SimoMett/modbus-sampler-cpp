@@ -140,7 +140,7 @@ void GuiWorker::run()
             int tmpWidth, tmpHeight;
             SDL_GetWindowSize(window, &tmpWidth, &tmpHeight);
             ImGui::SetNextWindowSize({(float)tmpWidth, (float)tmpHeight});
-            if (ImGui::Begin("Mainwindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+            if (ImGui::Begin("Mainwindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar))
             {
                 for (auto &kv : samples_queues)
                 {
@@ -148,18 +148,15 @@ void GuiWorker::run()
                     const SamplesRingQueue &queue = kv.second;
                     if (ImPlot::BeginPlot(tag_name, ImVec2(-1, 500), ImPlotFlags_NoTitle | ImPlotFlags_NoInputs))
                     {
-                        const std::vector<float> & data_x = queue.x_data();
-                        const std::vector<float> & data_y = queue.y_data();
-                        const std::vector<const char *> labels = queue.data_labels();
-
-                        /*if (data_x.size() >= 2)
-                            ImPlot::SetupAxisTicks(ImAxis_X1, 0.0, (double)(data_x.size() - 1), data_x.size(), labels.data());*/
+                        const std::vector<double> & data_x = queue.x_data();
+                        const std::vector<double> & data_y = queue.y_data();
+                        
                         ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Time);
                         ImPlot::SetupAxis(ImAxis_X1, "Time", ImPlotAxisFlags_AutoFit);
 
                         ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit);
 
-                        ImPlot::PlotLine(tag_name, data_x.data(), data_y.data(), data_x.size());
+                        ImPlot::PlotLine<double>(tag_name, data_x.data(), data_y.data(), data_x.size());
                         ImPlot::EndPlot();
                     }
                 }

@@ -31,15 +31,15 @@ public:
     void append(Sample sample);
     std::size_t size() const;
     Sample operator [](unsigned short index) const;
-    const std::vector<float> & x_data() const;
-    const std::vector<float> & y_data() const;
+    const std::vector<double> & x_data() const;
+    const std::vector<double> & y_data() const;
     const std::vector<const char *> data_labels() const;
     void refresh();
     
 private:
     const unsigned short max_len;
     std::deque<Sample> queue;
-    std::vector<float> data_x;
-    std::vector<float> data_y;
+    std::vector<double> data_x;
+    std::vector<double> data_y;
     std::vector<std::string> labels;
 };
