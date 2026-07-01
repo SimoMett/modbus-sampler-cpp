@@ -7,6 +7,8 @@ using nlohmann::json;
 
 namespace simomett
 {
+    extern volatile const char *author;
+
     inline json json_from_file(const std::string &file_path)
     {
         std::string path(file_path);
@@ -18,4 +20,6 @@ namespace simomett
         json json = json::parse(if_file);
         return json;
     }
+
+    std::string format_time(const std::chrono::system_clock::time_point &tp, const char * pattern);
 }

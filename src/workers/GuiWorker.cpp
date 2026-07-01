@@ -6,32 +6,30 @@
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl2.h"
 #include "implot/implot.h"
+#include "simomett/common.h"
 
-GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger),
-                                                                                                                    refresh_rate_ms(gui_config["refresh_rate"].get<unsigned short>()), deque_max_len(gui_config["deque_max_len"].get<unsigned short>()), light_theme(gui_config["light_theme"].get<bool>())
+GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger), refresh_rate_ms(gui_config["refresh_rate"].get<unsigned short>()), deque_max_len(gui_config["deque_max_len"].get<unsigned short>()), light_theme(gui_config["light_theme"].get<bool>())
 {
-    std::unordered_map<std::string, std::unordered_map<uint32_t, std::string> *> map = {
-        std::make_pair<std::string, std::unordered_map<uint32_t, std::string> *>("words", &this->words_names),
-        std::make_pair<std::string, std::unordered_map<uint32_t, std::string> *>("dwords", &this->dwords_names),
-        std::make_pair<std::string, std::unordered_map<uint32_t, std::string> *>("floats", &this->floats_names),
-    };
+    std::unordered_map<uint32_t, std::string> *maps[3];
+    maps[MbValueType::WORD_TYPE] = &this->words_names;
+    maps[MbValueType::DWORD_TYPE] = &this->dwords_names;
+    maps[MbValueType::REAL_TYPE] = &this->floats_names;
 
-    std::unordered_map<std::string, MbValueType> types_map = {
-        std::make_pair<std::string, MbValueType>("words", MbValueType::WORD_TYPE),
-        std::make_pair<std::string, MbValueType>("dwords", MbValueType::DWORD_TYPE),
-        std::make_pair<std::string, MbValueType>("floats", MbValueType::REAL_TYPE),
-    };
+    std::string json_str[3];
+    json_str[MbValueType::WORD_TYPE] = "words";
+    json_str[MbValueType::DWORD_TYPE] = "dwords";
+    json_str[MbValueType::REAL_TYPE] = "floats";
 
-    for (auto &v : {"words", "dwords", "floats"})
+    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE})
     {
-        if (!tags[v].is_null())
+        if (!tags[json_str[v]].is_null())
         {
-            for (json s : tags[v])
+            for (json s : tags[json_str[v]])
             {
                 std::string formatted_tag_name = ConsumerWorker::format_name(s["tag"].get<std::string>());
 
-                map[v]->insert({s["address"].get<uint32_t>(), formatted_tag_name});
-                this->samples_queues.insert({formatted_tag_name, SamplesRingQueue(deque_max_len, types_map[v])});
+                maps[v]->insert({s["address"].get<uint32_t>(), formatted_tag_name});
+                this->samples_queues.insert({formatted_tag_name, SamplesRingQueue(deque_max_len, v)});
             }
         }
     }
@@ -103,6 +101,7 @@ void GuiWorker::run()
         const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         // Main loop
+        std::chrono::system_clock::time_point dump_timer = std::chrono::system_clock::now();
         while (!should_close)
         {
             // Poll and handle events (inputs, window resize, etc.)
@@ -125,7 +124,11 @@ void GuiWorker::run()
                 continue;
             }
 
-            this->dump_samples();
+            if (std::chrono::system_clock::now() - dump_timer > std::chrono::milliseconds(refresh_rate_ms))
+            {
+                this->dump_samples();
+                dump_timer = std::chrono::system_clock::now();
+            }
 
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL2_NewFrame();
@@ -142,29 +145,15 @@ void GuiWorker::run()
                 for (auto &kv : samples_queues)
                 {
                     const char *tag_name = kv.first.c_str();
-                    const SamplesRingQueue queue(kv.second);
+                    const SamplesRingQueue &queue = kv.second;
                     if (ImPlot::BeginPlot(tag_name, ImVec2(-1, 500), ImPlotFlags_NoTitle | ImPlotFlags_NoInputs))
                     {
-                        std::vector<float> data_x;
-                        std::vector<const char*> labels;
-                        std::vector<float> data_y;
-                        for(int i=0; i<queue.size(); i++)
-                        {
-                            auto sample = queue[i];
-                            auto time = sample.time;
-                            switch(queue.type)
-                            {
-                                case MbValueType::WORD_TYPE: data_y.push_back((float)(sample.val.word)); break;
-                                case MbValueType::DWORD_TYPE: data_y.push_back((float)(sample.val.dword)); break;
-                                case MbValueType::REAL_TYPE: data_y.push_back(sample.val.real); break;
-                            }
-                            
-                            data_x.push_back((float)i);
-                            labels.push_back(format_time(time).c_str());
-                        }
-                        
-                        if(data_x.size() >= 2)
-                            ImPlot::SetupAxisTicks(ImAxis_X1, 0.0, (double)(data_x.size()-1), data_x.size(), labels.data());
+                        const std::vector<float> & data_x = queue.x_data();
+                        const std::vector<float> & data_y = queue.y_data();
+                        const std::vector<const char *> labels = queue.data_labels();
+
+                        /*if (data_x.size() >= 2)
+                            ImPlot::SetupAxisTicks(ImAxis_X1, 0.0, (double)(data_x.size() - 1), data_x.size(), labels.data());*/
                         ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Time);
                         ImPlot::SetupAxis(ImAxis_X1, "Time", ImPlotAxisFlags_AutoFit);
 
@@ -230,39 +219,36 @@ void GuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
         std::string tag_name = words_names[sample.address];
         MbValue v;
         v.word = sample.val;
-        //samples_queues[tag_name].append(Sample{v, time}); //do not use [] operator
+        // samples_queues[tag_name].append(Sample{v, time}); //do not use [] operator
         samples_queues.at(tag_name).append(Sample{v, time});
     }
 }
-void GuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point)
+void GuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point time)
 {
+    for (auto &sample : samples)
+    {
+        std::string tag_name = floats_names[sample.address];
+        MbValue v;
+        v.real = sample.val;
+        samples_queues.at(tag_name).append(Sample{v, time});
+    }
 }
-void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point)
+void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point time)
 {
+    for (auto &sample : samples)
+    {
+        std::string tag_name = dwords_names[sample.address];
+        MbValue v;
+        v.dword = sample.val;
+        samples_queues.at(tag_name).append(Sample{v, time});
+    }
 }
 
 void GuiWorker::dump_samples()
 {
-}
-
-std::string GuiWorker::format_time(const std::chrono::system_clock::time_point & tp)
-{
-    using namespace std::chrono;
-
-    // get number of milliseconds for the current second
-    // (remainder after division into seconds)
-    auto ms = duration_cast<milliseconds>(tp.time_since_epoch()) % 1000;
-
-    // convert to std::time_t in order to convert to std::tm (broken time)
-    auto timer = system_clock::to_time_t(tp);
-
-    // convert to broken time
-    std::tm bt = *std::localtime(&timer);
-
-    std::ostringstream oss;
-
-    oss << std::put_time(&bt, "%H:%M:%S"); // HH:MM:SS
-    oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
-
-    return oss.str();
+    for (auto &kv : samples_queues)
+    {
+        SamplesRingQueue &queue = kv.second;
+        queue.refresh();
+    }
 }

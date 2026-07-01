@@ -40,6 +40,4 @@ private:
 
     void run();
     void dump_samples();
-
-    static std::string format_time(const std::chrono::system_clock::time_point & tp);
 };

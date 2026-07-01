@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include "CsvWorker.h"
+#include "simomett/common.h"
 
 CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags) :
 logger(logger), output_dir(output_dir), dump_time_ms(static_cast<int>(dump_time_s * 1000)), is_running(false), current_queue(0)
@@ -149,7 +150,7 @@ void CsvWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
-        csv_line << CsvWorker::format_time(instant) << "," << sample.val;
+        csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
 
         this->samples_queues[this->current_queue][tag_name].push_back(csv_line.str());
     }
@@ -168,7 +169,7 @@ void CsvWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
-        csv_line << CsvWorker::format_time(instant) << "," << sample.val;
+        csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
 
         this->samples_queues[this->current_queue][tag_name].push_back(csv_line.str());
     }
@@ -186,30 +187,8 @@ void CsvWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
         std::string tag_name = ConsumerWorker::format_name(this->dwords_names[sample.address]); // also 'filename'
 
         std::ostringstream csv_line;
-        csv_line << CsvWorker::format_time(instant) << "," << sample.val;
+        csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
 
         this->samples_queues[this->current_queue][tag_name].push_back(csv_line.str());
     }
-}
-
-std::string CsvWorker::format_time(const std::chrono::system_clock::time_point & tp)
-{
-    using namespace std::chrono;
-
-    // get number of milliseconds for the current second
-    // (remainder after division into seconds)
-    auto ms = duration_cast<milliseconds>(tp.time_since_epoch()) % 1000;
-
-    // convert to std::time_t in order to convert to std::tm (broken time)
-    auto timer = system_clock::to_time_t(tp);
-
-    // convert to broken time
-    std::tm bt = *std::localtime(&timer);
-
-    std::ostringstream oss;
-
-    oss << std::put_time(&bt, "%Y-%m-%d %H:%M:%S"); // HH:MM:SS
-    oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
-
-    return oss.str();
 }

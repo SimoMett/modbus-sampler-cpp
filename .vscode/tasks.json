@@ -15,6 +15,7 @@
                 "${workspaceFolder}\\src\\workers\\ConsumerWorker.cpp",
                 "${workspaceFolder}\\src\\workers\\CsvWorker.cpp",
                 "${workspaceFolder}\\src\\workers\\ModbusWorker.cpp",
+                "${workspaceFolder}\\include\\simomett\\common.cpp",
                 "-o",
                 "${workspaceFolder}\\dist\\modbus_csv_sampler_daemon.exe",
                 "${workspaceFolder}\\libmodbus.dll"
@@ -58,6 +59,7 @@
                 "${workspaceFolder}\\include\\implot\\implot.cpp",
                 "${workspaceFolder}\\include\\implot\\implot_items.cpp",
                 "${workspaceFolder}\\include\\implot\\implot_demo.cpp",
+                "${workspaceFolder}\\include\\simomett\\common.cpp",
                 "-o",
                 "${workspaceFolder}\\dist\\modbus_graph_plotter.exe",
                 "${workspaceFolder}\\libmodbus.dll",
