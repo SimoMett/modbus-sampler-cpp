@@ -116,7 +116,11 @@ void ModbusWorker::run()
                                          { return !w->running(); }),
                           workers.end());
             if (workers.size() == 0)
-                throw std::runtime_error("No more consumer workers left");
+            {
+                logger->info("No more consumer workers left");
+                this->should_close = true;
+                break;
+            }
 
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(this->scantime_ms) - (std::chrono::system_clock::now() - start));
