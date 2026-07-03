@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Win32-Debug",
             "includePath": [
                 "${workspaceFolder}\\include\\**",
                 "${workspaceFolder}\\include\\imgui\\**",
@@ -15,7 +15,25 @@
             ],
             "windowsSdkVersion": "10.0.26100.0",
             "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
-            "cStandard": "c20",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-gcc-x64"
+        },
+        {
+            "name": "Win32-Release",
+            "includePath": [
+                "${workspaceFolder}\\include\\**",
+                "${workspaceFolder}\\include\\imgui\\**",
+                "${workspaceFolder}\\include\\imgui\\backends\\**",
+                "${workspaceFolder}\\src\\**"
+            ],
+            "defines": [
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.26100.0",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
+            "cStandard": "c17",
             "cppStandard": "c++20",
             "intelliSenseMode": "windows-gcc-x64"
         }
