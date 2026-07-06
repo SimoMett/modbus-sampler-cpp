@@ -62,6 +62,7 @@ private:
     void fetch_and_push_words(const Segment &s);
     void fetch_and_push_floats(const Segment &s);
     void fetch_and_push_dwords(const Segment &s);
+    void fetch_and_push_coils(const Segment &s);
 
     template <RegisterValue T>
     std::vector<AddressValue<T>> fetch_holding_registers(const Segment &s);

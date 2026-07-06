@@ -10,17 +10,19 @@
 
 GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger), refresh_rate_ms(gui_config["refresh_rate"].get<unsigned short>()), deque_max_len(gui_config["deque_max_len"].get<unsigned short>()), light_theme(gui_config["light_theme"].get<bool>())
 {
-    std::unordered_map<uint32_t, std::string> *maps[3];
+    std::unordered_map<uint32_t, std::string> *maps[4];
     maps[MbValueType::WORD_TYPE] = &this->words_names;
     maps[MbValueType::DWORD_TYPE] = &this->dwords_names;
     maps[MbValueType::REAL_TYPE] = &this->floats_names;
+    maps[MbValueType::COIL_TYPE] = &this->coils_names;
 
-    std::string json_str[3];
+    std::string json_str[4];
     json_str[MbValueType::WORD_TYPE] = "words";
     json_str[MbValueType::DWORD_TYPE] = "dwords";
     json_str[MbValueType::REAL_TYPE] = "floats";
+    json_str[MbValueType::COIL_TYPE] = "coils";
 
-    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE})
+    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE, MbValueType::COIL_TYPE})
     {
         if (!tags[json_str[v]].is_null())
         {
@@ -237,6 +239,17 @@ void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
         std::string tag_name = dwords_names[sample.address];
         MbValue v;
         v.dword = sample.val;
+        samples_queues.at(tag_name).append(Sample{v, time});
+    }
+}
+
+void GuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point time)
+{
+    for (auto &sample : samples)
+    {
+        std::string tag_name = coils_names[sample.address];
+        MbValue v;
+        v.word = sample.val; //Yes, let's allow this conversion
         samples_queues.at(tag_name).append(Sample{v, time});
     }
 }

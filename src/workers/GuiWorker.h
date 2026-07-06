@@ -22,6 +22,7 @@ public:
     void push_words(std::vector<AddressValue<uint16_t>>, std::chrono::system_clock::time_point);
     void push_floats(std::vector<AddressValue<float>>, std::chrono::system_clock::time_point);
     void push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point);
+    void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point);
 
 private:
     const std::string window_name;
@@ -32,6 +33,7 @@ private:
     std::unordered_map<uint32_t, std::string> words_names;
     std::unordered_map<uint32_t, std::string> floats_names;
     std::unordered_map<uint32_t, std::string> dwords_names;
+    std::unordered_map<uint32_t, std::string> coils_names;
     unsigned int current_queue;
     std::unordered_map<std::string, SamplesRingQueue> samples_queues;
     const unsigned short refresh_rate_ms;

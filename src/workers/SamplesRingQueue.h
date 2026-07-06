@@ -1,5 +1,6 @@
 #include <chrono>
 #include <deque>
+#include "simomett/common.h"
 
 union MbValue
 {
@@ -8,12 +9,7 @@ union MbValue
     float real;
 };
 
-enum MbValueType
-{
-    WORD_TYPE,
-    DWORD_TYPE,
-    REAL_TYPE
-};
+using simomett::MbValueType;
 
 struct Sample
 {

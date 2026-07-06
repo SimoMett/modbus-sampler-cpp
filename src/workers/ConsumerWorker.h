@@ -22,6 +22,7 @@ public:
     virtual void push_words(std::vector<AddressValue<uint16_t>>, std::chrono::system_clock::time_point)=0;
     virtual void push_floats(std::vector<AddressValue<float>>, std::chrono::system_clock::time_point)=0;
     virtual void push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point)=0;
+    virtual void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point)=0;
 protected:
     virtual void dump_samples() = 0;
     static std::string format_name(const std::string & name);

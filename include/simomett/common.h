@@ -9,6 +9,14 @@ namespace simomett
 {
     extern volatile const char *author;
 
+    enum MbValueType
+    {
+        WORD_TYPE,
+        DWORD_TYPE,
+        REAL_TYPE,
+        COIL_TYPE
+    };
+
     inline json json_from_file(const std::string &file_path)
     {
         std::string path(file_path);

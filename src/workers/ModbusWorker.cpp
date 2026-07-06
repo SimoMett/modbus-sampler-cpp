@@ -309,6 +309,49 @@ std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment
     return samples;
 }
 
+void ModbusWorker::fetch_and_push_coils(const Segment &s)
+{
+    // std::cout << "words: " << this->words.size() << "\n";
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
+    auto results = std::make_unique<bool[]>(s.end - s.start + 1);
+
+    Modbus::StatusCode code = this->client.readCoilsAsBoolArray(s.start - (this->one_indexed ? 1 : 0), s.end - s.start + 1, results.get());
+    if (code != Modbus::Status_Good)
+    {
+        // throw the correct message
+        using Modbus::StatusCode;
+        switch (code)
+        {
+        case StatusCode::Status_Bad | StatusCode::Status_BadTcpConnect:
+            throw std::runtime_error("Unable to create a TCP connection");
+            break;
+        default:
+        {
+            std::stringstream msg;
+            msg << "Failed to read coils. Returned code 0x" << std::hex << code << ". See https://github.com/serhmarch/ModbusLib/blob/main/src/ModbusGlobal.h";
+            throw std::runtime_error(msg.str());
+        }
+        }
+    }
+
+    std::vector<AddressValue<bool>> samples;
+    // std::cout << "Segment " << s.start << ", "<< s.end << "\n";
+
+    for (uint32_t i = s.start; i < s.end; i++)
+    {
+        // std::cout << "[i] " << i <<": " << results[i-s.start] << "\n";
+        samples.push_back(AddressValue<bool>{i, results[i - s.start]});
+    }
+
+    // std::cout << samples.size() << "\n";
+    for (const auto &worker : this->workers)
+    {
+        if (worker->running())
+            worker->push_coils(samples, now);
+    }
+}
+
 void ModbusWorker::stop()
 {
     this->should_close = true;
