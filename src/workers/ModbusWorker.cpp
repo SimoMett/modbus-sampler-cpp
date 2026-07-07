@@ -35,9 +35,8 @@ void ModbusWorker::parse_tags(json tags)
     }
 }
 
-ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::TcpSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) :
-logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
-    port(createClientPort(Modbus::TCP, modbus_settings, true)), client(1, this->port.get())
+ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::TcpSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
+                                                                                                                                                                            port(createClientPort(Modbus::TCP, modbus_settings, true)), client(1, this->port.get())
 {
     this->should_close = false;
 
@@ -74,43 +73,19 @@ void ModbusWorker::run()
 
             // logic here
             for (const Segment &s : this->bits)
-            {
-                // TODO
-                logger->warn("'Bits' not implemented yet");
-            }
+                logger->warn("'Bits' not implemented yet"); // TODO
 
             for (const Segment &s : this->coils)
-            {
-                // TODO
-                logger->warn("'Coils' not implemented yet");
-            }
+                logger->warn("'Coils' not implemented yet"); // TODO
 
             for (const Segment &s : this->words)
-            {
-                //Metodo nuovo
-                std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-                
-                std::vector<AddressValue<uint16_t>> samples = fetch_holding_registers<uint16_t>(s);
-
-                for (const auto &worker : this->workers)
-                {
-                    if (worker->running())
-                        worker->push_words(samples, now);
-                }
-
-                // fetch_and_push_words(s);
-            }
+                fetch_and_push_words(s);
 
             for (const Segment &s : this->floats)
-            {
-                //Metodo vecchio
                 fetch_and_push_floats(s);
-            }
 
             for (const Segment &s : this->dwords)
-            {
                 fetch_and_push_dwords(s);
-            }
 
             workers.erase(std::remove_if(workers.begin(), workers.end(), [](const std::shared_ptr<ConsumerWorker> &w)
                                          { return !w->running(); }),
@@ -137,40 +112,10 @@ void ModbusWorker::run()
 
 void ModbusWorker::fetch_and_push_words(const Segment &s)
 {
-    // std::cout << "words: " << this->words.size() << "\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-    auto results = std::make_unique<uint16_t[]>(s.end - s.start + 1);
+    std::vector<AddressValue<uint16_t>> samples = fetch_holding_registers<uint16_t>(s);
 
-    Modbus::StatusCode code = this->client.readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + 1, results.get());
-    if (code != Modbus::Status_Good)
-    {
-        // throw the correct message
-        using Modbus::StatusCode;
-        switch (code)
-        {
-        case StatusCode::Status_Bad | StatusCode::Status_BadTcpConnect:
-            throw std::runtime_error("Unable to create a TCP connection");
-            break;
-        default:
-        {
-            std::stringstream msg;
-            msg << "Failed to read holding registers. Returned code 0x" << std::hex << code << ". See https://github.com/serhmarch/ModbusLib/blob/main/src/ModbusGlobal.h";
-            throw std::runtime_error(msg.str());
-        }
-        }
-    }
-
-    std::vector<AddressValue<uint16_t>> samples;
-    // std::cout << "Segment " << s.start << ", "<< s.end << "\n";
-
-    for (uint32_t i = s.start; i < s.end; i++)
-    {
-        // std::cout << "[i] " << i <<": " << results[i-s.start] << "\n";
-        samples.push_back(AddressValue<uint16_t>{i, results[i - s.start]});
-    }
-
-    // std::cout << samples.size() << "\n";
     for (const auto &worker : this->workers)
     {
         if (worker->running())
@@ -182,35 +127,7 @@ void ModbusWorker::fetch_and_push_floats(const Segment &s)
 {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-    auto results = std::make_unique<uint16_t[]>(s.end - s.start + 2);
-
-    Modbus::StatusCode code = this->client.readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + 2, results.get());
-    if (code != Modbus::Status_Good)
-    {
-        // throw the correct message
-        using Modbus::StatusCode;
-        switch (code)
-        {
-        case StatusCode::Status_Bad | StatusCode::Status_BadTcpConnect:
-            throw std::runtime_error("Unable to create a TCP connection");
-            break;
-        default:
-        {
-            std::stringstream msg;
-            msg << "Failed to read holding registers. Returned code 0x" << std::hex << code << ". See https://github.com/serhmarch/ModbusLib/blob/main/src/ModbusGlobal.h";
-            throw std::runtime_error(msg.str());
-        }
-        }
-    }
-
-    std::vector<AddressValue<float>> samples;
-
-    for (uint32_t i = s.start; i < s.end; i += 2)
-    {
-        uint16_t rr[2] = {results[i - s.start], results[i + 1 - s.start]};
-        float v = regs_to_float(rr, this->reg_order);
-        samples.push_back(AddressValue<float>{i, v});
-    }
+    std::vector<AddressValue<float>> samples = fetch_holding_registers<float>(s);
 
     for (const auto &worker : this->workers)
     {
@@ -223,35 +140,7 @@ void ModbusWorker::fetch_and_push_dwords(const Segment &s)
 {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-    auto results = std::make_unique<uint16_t[]>(s.end - s.start + 2);
-
-    Modbus::StatusCode code = this->client.readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + 2, results.get());
-    if (code != Modbus::Status_Good)
-    {
-        // throw the correct message
-        using Modbus::StatusCode;
-        switch (code)
-        {
-        case StatusCode::Status_Bad | StatusCode::Status_BadTcpConnect:
-            throw std::runtime_error("Unable to create a TCP connection");
-            break;
-        default:
-        {
-            std::stringstream msg;
-            msg << "Failed to read holding registers. Returned code 0x" << std::hex << code << ". See https://github.com/serhmarch/ModbusLib/blob/main/src/ModbusGlobal.h";
-            throw std::runtime_error(msg.str());
-        }
-        }
-    }
-
-    std::vector<AddressValue<uint32_t>> samples;
-
-    for (uint32_t i = s.start; i < s.end; i += 2)
-    {
-        uint16_t rr[2] = {results[i - s.start], results[i + 1 - s.start]};
-        uint32_t v = regs_to_uint32(rr, this->reg_order);
-        samples.push_back(AddressValue<uint32_t>{i, v});
-    }
+    std::vector<AddressValue<uint32_t>> samples = fetch_holding_registers<uint32_t>(s);
 
     for (const auto &worker : this->workers)
     {
