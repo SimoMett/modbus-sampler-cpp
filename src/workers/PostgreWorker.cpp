@@ -48,13 +48,14 @@ void PostgreWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std:
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->words_names[sample.address]); // also 'filename'
+        std::string table_name = ConsumerWorker::format_name(this->words_names[sample.address]); // also 'filename'
         // std::cout << tag_name << "\n";
 
         //std::ostringstream query_line;
-        //query_line << "INSERT INTO "<< tag_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
-        std::cout << "INSERT INTO "<< tag_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
+        //query_line << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
+        std::cout << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
 
+        //TODO: provare con una lista semplice invece di una unordered_map
         //this->samples_queues[this->current_queue][tag_name].push_back(query_line.str());
     }
 }
@@ -82,25 +83,21 @@ void PostgreWorker::dump_samples()
         //
 
         // dump to pg
-        auto &q = this->samples_queues[old_queue];
-        std::vector<std::string> keys;
-        for (auto &kv : q)
-            keys.push_back(kv.first);
-
-        // std::cout << keys.size() << "\n";
-        /*for (std::string filename : keys)
+        auto &samples_queue = this->samples_queues[old_queue];
+        //PQexec(pgconn, "BEGIN");
+        for (auto &kv : samples_queue)
         {
-            // std::cout << filename << "\n";
-            std::ofstream output(this->output_dir / (filename + ".csv"), std::ios_base::app);
-            if (!output.is_open())
-                throw std::runtime_error(
-                    std::string("Couldn't open file ") + (this->output_dir / (filename + ".csv")).string() + ". Does the output folder exists?");
+            const std::string & table_name = kv.first;
+            const std::vector<std::string> & queries = kv.second;
 
-            for (auto &csv_line : q[filename])
-                output << csv_line << "\n";
-
-            q[filename].clear();
-        }*/
+            for(auto & query : queries)
+            {
+                std::cout << query << "\n";
+                //PQexec(pgconn, query.c_str());
+                //TODO: provare anche metodo PQprepare + PQexecPrepared
+            }
+        }
+        //PQexec(pgconn, "COMMIT");
     }
 }
 
