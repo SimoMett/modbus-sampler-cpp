@@ -4,34 +4,34 @@
 #include <chrono>
 #include <concepts>
 #include "ModbusWorker.h"
+#include "simomett/common.h"
+
+using simomett::MbValueType;
 
 void ModbusWorker::parse_tags(json tags)
 {
-    if (!tags["words"].is_null())
+    std::vector<Segment> *maps[4];
+    maps[MbValueType::WORD_TYPE] = &this->words;
+    maps[MbValueType::DWORD_TYPE] = &this->dwords;
+    maps[MbValueType::REAL_TYPE] = &this->floats;
+    //maps[MbValueType::COIL_TYPE] = &this->coils_names;
+
+    std::string json_str[4];
+    json_str[MbValueType::WORD_TYPE] = "words";
+    json_str[MbValueType::DWORD_TYPE] = "dwords";
+    json_str[MbValueType::REAL_TYPE] = "floats";
+    //json_str[MbValueType::COIL_TYPE] = "coils";
+
+    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE/*, MbValueType::COIL_TYPE*/})
     {
-        std::vector<uint32_t> addresses;
-        for (json w : tags["words"])
-            addresses.push_back(w["address"].get<uint32_t>());
+        if (!tags[json_str[v]].is_null())
+        {
+            std::vector<uint32_t> addresses;
+            for (json w : tags[json_str[v]])
+                addresses.push_back(w["address"]);
 
-        this->words = segmentize(addresses, 1);
-    }
-
-    if (!tags["floats"].is_null())
-    {
-        std::vector<uint32_t> addresses;
-        for (json w : tags["floats"])
-            addresses.push_back(w["address"]);
-
-        this->floats = segmentize(addresses, 2);
-    }
-
-    if (!tags["dwords"].is_null())
-    {
-        std::vector<uint32_t> addresses;
-        for (json w : tags["dwords"])
-            addresses.push_back(w["address"]);
-
-        this->dwords = segmentize(addresses, 2);
+            this->floats = segmentize(addresses, v == MbValueType::WORD_TYPE? 1 : 2);
+        }
     }
 }
 
