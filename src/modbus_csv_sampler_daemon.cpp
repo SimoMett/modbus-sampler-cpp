@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
         // workers setup
         std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
-        consumerWorkers.push_back(std::make_shared<CsvWorker>(std::shared_ptr<spdlog::logger>(logger), config_json["csv"]["output_directory"].get<std::string>(), config_json["csv"]["storing_interval"].get<float>(), tags_json));
+        consumerWorkers.push_back(std::make_shared<CsvWorker>(logger, config_json["csv"]["output_directory"].get<std::string>(), config_json["csv"]["storing_interval"].get<float>(), tags_json));
         
         for (auto worker : consumerWorkers)
             worker->start();
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     }
     catch (const std::exception &e)
     {
-        std::cout << "exc\n";
+        std::cout << e.what() << "\n";
         logger->info(e.what());
     }
     return 0;

@@ -24,7 +24,7 @@ CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_
     {
         if (!tags[json_str[v]].is_null())
         {
-            for (json s : tags[v])
+            for (json s : tags[json_str[v]])
             {
                 maps[v]->insert({s["address"].get<uint32_t>(),
                                 s["tag"].get<std::string>()});

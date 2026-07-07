@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
 
         // workers setup
         std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
-        consumerWorkers.push_back(std::make_shared<GuiWorker>(std::shared_ptr<spdlog::logger>(logger), program_name, config_json["gui"], tags_json));
+        consumerWorkers.push_back(std::make_shared<GuiWorker>(logger, program_name, config_json["gui"], tags_json));
         
         for (auto worker : consumerWorkers)
             worker->start();
@@ -108,7 +108,7 @@ int main(int argc, char ** argv)
     }
     catch (const std::exception &e)
     {
-        std::cout << "exc\n";
+        std::cout << e.what() << "\n";
         logger->info(e.what());
     }
 
