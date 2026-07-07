@@ -14,7 +14,7 @@ CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_
     maps[MbValueType::REAL_TYPE] = &this->floats_names;
     maps[MbValueType::COIL_TYPE] = &this->coils_names;
 
-    std::string json_str[3];
+    std::string json_str[4];
     json_str[MbValueType::WORD_TYPE] = "words";
     json_str[MbValueType::DWORD_TYPE] = "dwords";
     json_str[MbValueType::REAL_TYPE] = "floats";
