@@ -7,18 +7,14 @@
 PostgreWorker::PostgreWorker(std::shared_ptr<spdlog::logger> logger, std::string host, uint16_t port, std::string dbname, std::string user, std::string password, float dump_time_s, json tags): logger(logger), dump_time_ms(static_cast<int>(dump_time_s * 1000))
 {
     std::stringstream connection_str;
-    connection_str << "host=localhost port=5432 dbname=mydatabase user=myuser password=mypassword";
     connection_str << "host=" << host <<" port=" << port << "dbname=" << dbname << " user=" << user << " password=" << password;
-    this->pgconn = PQconnectdb(connection_str.str().c_str());
 
-    if(PQstatus(pgconn) != CONNECTION_OK)
-        throw std::runtime_error("Cannot initialize Postgre connection");
-    
+    this->pgconn = pqxx::connection(connection_str.str());
 }
 
 PostgreWorker::~PostgreWorker()
 {
-    PQfinish(pgconn);
+    
 }
 
 void PostgreWorker::start()
@@ -39,6 +35,37 @@ bool PostgreWorker::running()
     return is_running;
 }
 
+//Nuovo metodo
+/*template <RegisterValue T>
+void PostgreWorker::push_generic(std::vector<AddressValue<T>> samples, std::chrono::system_clock::time_point instant)
+{
+    std::unordered_map<uint32_t, std::string> * tags_names;
+    if (std::is_same_v<T, uint32_t>)
+        tags_names = &this->dwords_names;
+    else if (std::is_same_v<T, float>)
+        tags_names = &this->floats_names;
+    else
+        tags_names = &this->words_names;
+
+    for (AddressValue<T> &sample : samples)
+    {
+        if (tags_names->find(sample.address) == tags_names->end())
+        {
+            // std::cout << "address " << sample.address << " not found \n";
+            continue;
+        }
+        std::string table_name = ConsumerWorker::format_name(tags_names[sample.address]); //also 'tag_name'
+        // std::cout << tag_name << "\n";
+
+        std::stringstream query_line;
+        query_line << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
+        std::cout << query_line.str() << "\n";
+
+        //TODO: provare con una lista semplice invece di una unordered_map
+        this->samples_queues[this->current_queue][table_name].push_back(query_line.str());
+    }
+}*/
+
 void PostgreWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point instant)
 {
     for (AddressValue<uint16_t> &sample : samples)
@@ -48,15 +75,15 @@ void PostgreWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std:
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string table_name = ConsumerWorker::format_name(this->words_names[sample.address]); // also 'filename'
+        std::string table_name = ConsumerWorker::format_name(this->words_names[sample.address]); //also 'tag_name'
         // std::cout << tag_name << "\n";
 
-        //std::ostringstream query_line;
-        //query_line << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
-        std::cout << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
+        std::stringstream query_line;
+        query_line << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << sample.val << ");";
+        //std::cout << query_line.str() << "\n";
 
         //TODO: provare con una lista semplice invece di una unordered_map
-        //this->samples_queues[this->current_queue][tag_name].push_back(query_line.str());
+        this->samples_queues[this->current_queue][table_name].push_back(query_line.str());
     }
 }
 
@@ -84,7 +111,9 @@ void PostgreWorker::dump_samples()
 
         // dump to pg
         auto &samples_queue = this->samples_queues[old_queue];
-        //PQexec(pgconn, "BEGIN");
+
+        pqxx::work tx{pgconn};
+        tx.exec("BEGIN");
         for (auto &kv : samples_queue)
         {
             const std::string & table_name = kv.first;
@@ -93,11 +122,11 @@ void PostgreWorker::dump_samples()
             for(auto & query : queries)
             {
                 std::cout << query << "\n";
-                //PQexec(pgconn, query.c_str());
+                //tx.exec(query.c_str());
                 //TODO: provare anche metodo PQprepare + PQexecPrepared
             }
         }
-        //PQexec(pgconn, "COMMIT");
+        tx.exec("COMMIT");
     }
 }
 
@@ -109,10 +138,22 @@ void PostgreWorker::run()
 
     try
     {
+        std::chrono::system_clock::time_point start;
         while (!this->should_close)
         {
-            std::this_thread::sleep_for(this->dump_time_ms);
+            start = std::chrono::system_clock::now();
+
             this->dump_samples();
+
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
+            if(elapsed_ms > this->dump_time_ms)
+            {
+                std::stringstream msg;
+                msg << "Samples dump took too much time (" << elapsed_ms << " ms)";
+                logger->warn(msg.str());
+            }
+            else
+                std::this_thread::sleep_for(this->dump_time_ms - elapsed_ms);
         }
         this->dump_samples();
         this->logger->info("Postgre worker stopped");
