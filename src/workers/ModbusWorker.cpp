@@ -181,7 +181,7 @@ std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment
     {
         if (std::is_same_v<T, uint16_t>)
         {
-            samples.push_back(AddressValue<uint16_t>{i, results[i - s.start]});
+            samples.push_back(AddressValue<T>{i, results[i - s.start]});
         }
         else
         {
