@@ -7,6 +7,10 @@ csv_output/*
 dist/*
 lib/*
 test.*
+CMakeFiles/*
+CMakeCache.txt
+*.cmake
+Makefile
 include/nlohmann_old/json.hpp
 include/imgui/.github/*
 include/imgui/docs/*
