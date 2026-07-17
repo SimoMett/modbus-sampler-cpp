@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(parser.get<std::string>("--log"), true);
     file_sink->set_level(spdlog::level::trace);
 
-    std::shared_ptr<spdlog::logger> logger(new spdlog::logger("multi_sink", {file_sink, console_sink}));
+    std::shared_ptr<spdlog::logger> logger(new spdlog::logger(program_name, {file_sink, console_sink}));
     logger->set_level(spdlog::level::info);
 
     try
