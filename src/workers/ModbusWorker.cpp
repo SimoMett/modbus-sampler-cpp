@@ -28,9 +28,12 @@ void ModbusWorker::parse_tags(json tags)
         {
             std::vector<uint32_t> addresses;
             for (json w : tags[json_str[v]])
+            {
+                // std::cout << "Address: " << w["address"] << ", Tag: " << w["tag"] << "\n";
                 addresses.push_back(w["address"]);
+            }
 
-            this->floats = segmentize(addresses, v == MbValueType::WORD_TYPE? 1 : 2);
+            *maps[v] = segmentize(addresses, v == MbValueType::WORD_TYPE? 1 : 2);
         }
     }
 }
