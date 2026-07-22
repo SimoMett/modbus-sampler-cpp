@@ -8,8 +8,8 @@
 #endif
 
 #include "imgui/imgui.h"
-#include "backends/imgui_impl_sdl2.h"
-#include "backends/imgui_impl_opengl2.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_opengl2.h"
 
 #include "argparse/argparse.hpp"
 #include "spdlog/spdlog.h"
