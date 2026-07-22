@@ -16,9 +16,6 @@ include_directories(src/ include/ include/imgui/ ${SDL2_INCLUDE_DIRS})
 
 set(COMMON_SOURCE_CPP src/workers/ConsumerWorker.cpp src/workers/ModbusWorker.cpp include/simomett/common.cpp)
 
-add_executable(modbus_csv_sampler_daemon src/modbus_csv_sampler_daemon.cpp ${SOURCE_CPP})
-
-
 add_executable(modbus_csv_sampler_daemon src/modbus_csv_sampler_daemon.cpp ${COMMON_SOURCE_CPP} src/workers/CsvWorker.cpp)
 target_compile_features(modbus_csv_sampler_daemon PRIVATE cxx_std_20)
 target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB})
