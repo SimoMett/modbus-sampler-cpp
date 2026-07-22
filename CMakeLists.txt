@@ -23,7 +23,7 @@ target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB})
 set(IMGUI_SOURCE_CPP include/imgui/imgui.cpp include/imgui/imgui_tables.cpp include/imgui/imgui_widgets.cpp include/imgui/imgui_draw.cpp include/implot/implot.cpp include/implot/implot_items.cpp include/imgui/backends/imgui_impl_sdl2.cpp include/imgui/backends/imgui_impl_opengl2.cpp)
 add_executable(modbus_graph_plotter src/modbus_graph_plotter.cpp ${COMMON_SOURCE_CPP} src/workers/GuiWorker.cpp ${IMGUI_SOURCE_CPP} src/workers/SamplesRingQueue.cpp)
 target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
-target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} GL ${SDL2_LIBRARIES})
+target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES})
 
 add_executable(modbus_pg_sampler_daemon src/modbus_pg_sampler_daemon.cpp ${COMMON_SOURCE_CPP} src/workers/PostgreWorker.cpp)
 target_compile_features(modbus_pg_sampler_daemon PRIVATE cxx_std_20)
