@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\src\modbus_graph_plotter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\src\workers\ConsumerWorker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\src\workers\ModbusWorker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\simomett\common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\src\workers\GuiWorker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\imgui\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\imgui\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\imgui\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\imgui\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\implot\implot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\implot\implot_items.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\imgui\backends\imgui_impl_sdl2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\include\imgui\backends\imgui_impl_opengl2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\src\workers\SamplesRingQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\simonetti\Desktop\Dicerca e svriluppo\modbus-sampler-cpp\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{825D1D5E-BA2E-3184-A26B-BD2E79EF360A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

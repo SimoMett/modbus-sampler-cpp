@@ -9,7 +9,7 @@
                 "-fdiagnostics-color=always",
                 "-static",
                 "-std=c++20",
-                "-O1",
+                "-O2",
                 "-I${workspaceFolder}\\include",
                 "-g",
                 "${workspaceFolder}\\src\\modbus_csv_sampler_daemon.cpp",
@@ -78,7 +78,42 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++.exe build modbus postgre sampler",
+            "command": "C:/msys64/ucrt64/bin/g++.exe",
+            "args": [
+                "-pipe",
+                "-fdiagnostics-color=always",
+                "-static",
+                "-std=c++20",
+                "-O1",
+                "-I${workspaceFolder}\\include",
+                "-g",
+                "${workspaceFolder}\\src\\modbus_pg_sampler_daemon.cpp",
+                "${workspaceFolder}\\src\\workers\\ConsumerWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\PostgreWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\ModbusWorker.cpp",
+                "${workspaceFolder}\\include\\simomett\\common.cpp",
+                "-o",
+                "${workspaceFolder}\\dist\\modbus_pg_sampler_daemon.exe",
+                "${workspaceFolder}\\libmodbus.dll",
+                "-l:libwinpthread.a",
+                "-l:libpqxx.dll.a",
+                "-lpq"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
     ],
     "version": "2.0.0"
 }

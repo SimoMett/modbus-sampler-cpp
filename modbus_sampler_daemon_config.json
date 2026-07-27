@@ -14,7 +14,7 @@
     "gui":{
         "refresh_rate": 1000,
         "deque_max_len": 180,
-        "light_theme": false
+        "light_theme": true
     },
     "modbus_connection":{
         "host": "127.0.0.1",
