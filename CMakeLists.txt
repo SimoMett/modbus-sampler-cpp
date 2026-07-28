@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_OPTIMIZATION_LEVEL 2)
 
 project(modbus_samplers)
 
@@ -12,29 +11,57 @@ include_directories(src/ include/ include/imgui/ ${SDL2_INCLUDE_DIRS})
 
 set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.dll")
 
-set(COMMON_SOURCE_CPP src/workers/ConsumerWorker.cpp src/workers/ModbusWorker.cpp include/simomett/common.cpp)
+set(COMMON_SOURCE_CPP
+    src/workers/ConsumerWorker.cpp
+    src/workers/ModbusWorker.cpp
+    include/simomett/common.cpp
+)
 
-add_executable(modbus_csv_sampler_daemon src/modbus_csv_sampler_daemon.cpp ${COMMON_SOURCE_CPP} src/workers/CsvWorker.cpp)
+set(IMGUI_SOURCE_CPP
+    include/imgui/imgui.cpp
+    include/imgui/imgui_tables.cpp
+    include/imgui/imgui_widgets.cpp
+    include/imgui/imgui_draw.cpp
+    include/implot/implot.cpp
+    include/implot/implot_items.cpp
+    include/imgui/backends/imgui_impl_sdl2.cpp
+    include/imgui/backends/imgui_impl_opengl2.cpp
+)
+
+add_executable(modbus_csv_sampler_daemon
+    src/modbus_csv_sampler_daemon.cpp
+    ${COMMON_SOURCE_CPP}
+    src/workers/CsvWorker.cpp
+)
 target_compile_features(modbus_csv_sampler_daemon PRIVATE cxx_std_20)
-IF(WIN32)
-target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB}"libwinpthread.a")
-ELSE()
-target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB})
-ENDIF()
+if(WIN32)
+    target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB} "libwinpthread.a")
+else()
+    target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB})
+endif()
 
-set(IMGUI_SOURCE_CPP include/imgui/imgui.cpp include/imgui/imgui_tables.cpp include/imgui/imgui_widgets.cpp include/imgui/imgui_draw.cpp include/implot/implot.cpp include/implot/implot_items.cpp include/imgui/backends/imgui_impl_sdl2.cpp include/imgui/backends/imgui_impl_opengl2.cpp)
-add_executable(modbus_graph_plotter src/modbus_graph_plotter.cpp ${COMMON_SOURCE_CPP} src/workers/GuiWorker.cpp ${IMGUI_SOURCE_CPP} src/workers/SamplesRingQueue.cpp)
+add_executable(modbus_graph_plotter
+    src/modbus_graph_plotter.cpp
+    ${COMMON_SOURCE_CPP}
+    src/workers/GuiWorker.cpp
+    ${IMGUI_SOURCE_CPP}
+    src/workers/SamplesRingQueue.cpp
+)
 target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
-IF(WIN32)
-target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
-ELSE()
-target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES})
-ENDIF()
+if(WIN32)
+    target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
+else()
+    target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES})
+endif()
 
-add_executable(modbus_pg_sampler_daemon src/modbus_pg_sampler_daemon.cpp ${COMMON_SOURCE_CPP} src/workers/PostgreWorker.cpp)
+add_executable(modbus_pg_sampler_daemon
+    src/modbus_pg_sampler_daemon.cpp
+    ${COMMON_SOURCE_CPP}
+    src/workers/PostgreWorker.cpp
+)
 target_compile_features(modbus_pg_sampler_daemon PRIVATE cxx_std_20)
-IF(WIN32)
-target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx "libwinpthread.a")
-ELSE()
-target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx)
-ENDIF()
+if(WIN32)
+    target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx "libwinpthread.a")
+else()
+    target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx)
+endif()
