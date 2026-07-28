@@ -14,15 +14,15 @@ void ModbusWorker::parse_tags(json tags)
     maps[MbValueType::WORD_TYPE] = &this->words;
     maps[MbValueType::DWORD_TYPE] = &this->dwords;
     maps[MbValueType::REAL_TYPE] = &this->floats;
-    //maps[MbValueType::COIL_TYPE] = &this->coils_names;
+    maps[MbValueType::COIL_TYPE] = &this->coils;
 
     std::string json_str[4];
     json_str[MbValueType::WORD_TYPE] = "words";
     json_str[MbValueType::DWORD_TYPE] = "dwords";
     json_str[MbValueType::REAL_TYPE] = "floats";
-    //json_str[MbValueType::COIL_TYPE] = "coils";
+    json_str[MbValueType::COIL_TYPE] = "coils";
 
-    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE/*, MbValueType::COIL_TYPE*/})
+    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE, MbValueType::COIL_TYPE})
     {
         if (!tags[json_str[v]].is_null())
         {
@@ -34,11 +34,22 @@ void ModbusWorker::parse_tags(json tags)
             }
 
             // How about this?
-            //std::transform(tags[json_str[v]].begin(), tags[json_str[v]].end(), addresses.begin(), [&](json w){ return w["address"]; });
-
-            *maps[v] = segmentize(addresses, v == MbValueType::WORD_TYPE? 1 : 2);
+            // std::transform(tags[json_str[v]].begin(), tags[json_str[v]].end(), addresses.begin(), [&](json w){ return w["address"]; });
+            *maps[v] = segmentize(addresses, v == MbValueType::WORD_TYPE || v == MbValueType::COIL_TYPE ? 1 : 2);
         }
     }
+
+    // dedicated logic for parsing bits.
+    /*if (!tags["bits"].is_null())
+    {
+        std::vector<AddessAndBit> addresses;
+        for (json w : tags["bits"])
+        {
+            addresses.push_back({w["address"], w["bit"]});
+        }
+
+        this->bits = segmentize(addresses, 1);
+    }*/
 }
 
 ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::TcpSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
@@ -67,7 +78,7 @@ void ModbusWorker::join()
 void ModbusWorker::run()
 {
     const int max_retries = 3;
-    int retries = max_retries; //FIXME: da usare da qualche parte
+    int retries = max_retries; // FIXME: da usare da qualche parte
 
     this->logger->info("Modbus worker started");
 
@@ -79,10 +90,10 @@ void ModbusWorker::run()
 
             // logic here
             for (const Segment &s : this->bits)
-                logger->warn("'Bits' not implemented yet"); // TODO
+                fetch_and_push_bits(s);
 
             for (const Segment &s : this->coils)
-                logger->warn("'Coils' not implemented yet"); // TODO
+                fetch_and_push_coils(s);
 
             for (const Segment &s : this->words)
                 fetch_and_push_words(s);
@@ -204,10 +215,11 @@ std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment
 
 void ModbusWorker::fetch_and_push_coils(const Segment &s)
 {
-    // std::cout << "words: " << this->words.size() << "\n";
+    // FIXME: never used. Need testing
+    //  std::cout << "words: " << this->words.size() << "\n";
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-    auto results = std::make_unique<bool[]>(s.end - s.start + 1);
+    std::unique_ptr<bool[]> results = std::make_unique<bool[]>(s.end - s.start + 1);
 
     Modbus::StatusCode code = this->client.readCoilsAsBoolArray(s.start - (this->one_indexed ? 1 : 0), s.end - s.start + 1, results.get());
     if (code != Modbus::Status_Good)
@@ -243,6 +255,30 @@ void ModbusWorker::fetch_and_push_coils(const Segment &s)
         if (worker->running())
             worker->push_coils(samples, now);
     }
+}
+
+void ModbusWorker::fetch_and_push_bits(const Segment &s)
+{
+    logger->warn("'Bits' not implemented yet"); // TODO
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
+    std::vector<AddressValue<uint16_t>> unprocessed_samples = fetch_holding_registers<uint16_t>(s);
+
+    std::vector<BitAddressValue> samples;
+
+    for (auto us : unprocessed_samples)
+    {
+        uint32_t addr = 0;
+        uint8_t bit = 0;
+        bool val = (us.val & (1 << bit) != 0);
+        samples.push_back(BitAddressValue{addr, bit, val});
+    }
+
+    /*for (const auto &worker : this->workers)
+    {
+        if (worker->running())
+            worker->push_coils(samples, now);
+    }*/
 }
 
 void ModbusWorker::stop()
@@ -285,5 +321,5 @@ uint32_t ModbusWorker::regs_to_uint32(const uint16_t regs[2], RegisterOrder reg_
 inline float ModbusWorker::regs_to_float(const uint16_t regs[2], RegisterOrder reg_order)
 {
     uint32_t x = regs_to_uint32(regs, reg_order);
-    return *(float *)(&x); //To cppcheck: trust me bro
+    return *(float *)(&x); // To cppcheck: trust me bro
 }

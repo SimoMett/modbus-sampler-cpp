@@ -10,6 +10,13 @@ struct AddressValue
     T val;
 };
 
+struct BitAddressValue
+{
+    uint32_t address;
+    uint8_t bit;
+    bool val;
+};
+
 class ConsumerWorker
 {
 public:

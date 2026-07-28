@@ -8,6 +8,8 @@
 #include "nlohmann/json.hpp"
 #include "ConsumerWorker.h"
 
+#pragma once
+
 using json = nlohmann::json;
 
 template <typename T>
@@ -23,6 +25,12 @@ enum RegisterOrder
 {
     R1R0,
     R0R1
+};
+
+struct AddessAndBit
+{
+    uint32_t address;
+    uint8_t bit;
 };
 
 class ModbusWorker
@@ -44,11 +52,11 @@ private:
     const RegisterOrder reg_order;
     const unsigned int scantime_ms;
 
-    //support vars
+    // support vars
     std::unique_ptr<ModbusClientPort> port;
     ModbusClient client;
-    
-    //Addresses segments for Modbus polling
+
+    // Addresses segments for Modbus polling
     std::vector<Segment> bits;
     std::vector<Segment> coils;
     std::vector<Segment> words;
@@ -63,6 +71,7 @@ private:
     void fetch_and_push_floats(const Segment &s);
     void fetch_and_push_dwords(const Segment &s);
     void fetch_and_push_coils(const Segment &s);
+    void fetch_and_push_bits(const Segment &s);
 
     template <RegisterValue T>
     std::vector<AddressValue<T>> fetch_holding_registers(const Segment &s);
