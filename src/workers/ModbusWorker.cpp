@@ -33,6 +33,9 @@ void ModbusWorker::parse_tags(json tags)
                 addresses.push_back(w["address"]);
             }
 
+            // How about this?
+            //std::transform(tags[json_str[v]].begin(), tags[json_str[v]].end(), addresses.begin(), [&](json w){ return w["address"]; });
+
             *maps[v] = segmentize(addresses, v == MbValueType::WORD_TYPE? 1 : 2);
         }
     }
@@ -64,7 +67,7 @@ void ModbusWorker::join()
 void ModbusWorker::run()
 {
     const int max_retries = 3;
-    int retries = max_retries;
+    int retries = max_retries; //FIXME: da usare da qualche parte
 
     this->logger->info("Modbus worker started");
 
@@ -72,7 +75,7 @@ void ModbusWorker::run()
     {
         while (!this->should_close)
         {
-            std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+            std::chrono::system_clock::time_point start_t = std::chrono::system_clock::now();
 
             // logic here
             for (const Segment &s : this->bits)
@@ -101,7 +104,7 @@ void ModbusWorker::run()
             }
 
             std::this_thread::sleep_for(
-                std::chrono::milliseconds(this->scantime_ms) - (std::chrono::system_clock::now() - start));
+                std::chrono::milliseconds(this->scantime_ms) - (std::chrono::system_clock::now() - start_t));
         }
     }
     catch (const std::exception &e)
@@ -155,11 +158,9 @@ void ModbusWorker::fetch_and_push_dwords(const Segment &s)
 template <RegisterValue T>
 std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment &s)
 {
-    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    auto results = std::make_unique<uint16_t[]>(s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2));
 
-    auto results = std::make_unique<uint16_t[]>(s.end - s.start + std::is_same_v<T, uint16_t> ? 1 : 2);
-
-    Modbus::StatusCode code = this->client.readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + std::is_same_v<T, uint16_t> ? 1 : 2, results.get());
+    Modbus::StatusCode code = this->client.readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2), results.get());
     if (code != Modbus::Status_Good)
     {
         // throw the correct message
@@ -270,7 +271,7 @@ std::vector<Segment> ModbusWorker::segmentize(std::vector<uint32_t> addresses, u
     return tmp;
 }
 
-uint32_t ModbusWorker::regs_to_uint32(uint16_t regs[2], RegisterOrder reg_order)
+uint32_t ModbusWorker::regs_to_uint32(const uint16_t regs[2], RegisterOrder reg_order)
 {
     uint32_t x = 0;
     if (reg_order == R1R0)
@@ -281,8 +282,8 @@ uint32_t ModbusWorker::regs_to_uint32(uint16_t regs[2], RegisterOrder reg_order)
     return x;
 }
 
-inline float ModbusWorker::regs_to_float(uint16_t regs[2], RegisterOrder reg_order)
+inline float ModbusWorker::regs_to_float(const uint16_t regs[2], RegisterOrder reg_order)
 {
     uint32_t x = regs_to_uint32(regs, reg_order);
-    return *(float *)(&x);
+    return *(float *)(&x); //To cppcheck: trust me bro
 }

@@ -68,6 +68,6 @@ private:
     std::vector<AddressValue<T>> fetch_holding_registers(const Segment &s);
 
     static std::vector<Segment> segmentize(std::vector<uint32_t> addresses, uint16_t distance);
-    static uint32_t regs_to_uint32(uint16_t regs[2], RegisterOrder reg_order);
-    static float regs_to_float(uint16_t regs[2], RegisterOrder reg_order);
+    static uint32_t regs_to_uint32(const uint16_t regs[2], RegisterOrder reg_order);
+    static float regs_to_float(const uint16_t regs[2], RegisterOrder reg_order);
 };
