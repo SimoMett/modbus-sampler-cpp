@@ -4,17 +4,17 @@
 #include "PostgreWorker.h"
 #include "simomett/common.h"
 
-PostgreWorker::PostgreWorker(std::shared_ptr<spdlog::logger> logger, std::string host, uint16_t port, std::string dbname, std::string user, std::string password, float dump_time_s, json tags): logger(logger), dump_time_ms(static_cast<int>(dump_time_s * 1000))
+PostgreWorker::PostgreWorker(std::shared_ptr<spdlog::logger> logger, PostgreWorkerConfig config, float dump_time_s, json tags): logger(logger), dump_time_ms(static_cast<int>(dump_time_s * 1000))
 {
     std::stringstream connection_str;
-    connection_str << "host=" << host <<" port=" << port << "dbname=" << dbname << " user=" << user << " password=" << password;
+    connection_str << "host=" << config.host <<" port=" << config.port << " dbname=" << config.dbname << " user=" << config.user << " password=" << config.password;
 
-    this->pgconn = pqxx::connection(connection_str.str());
+    this->pgconn = new pqxx::connection{connection_str.str()};
 }
 
 PostgreWorker::~PostgreWorker()
 {
-    
+    delete this->pgconn;
 }
 
 void PostgreWorker::start()
@@ -112,7 +112,7 @@ void PostgreWorker::dump_samples()
         // dump to pg
         auto &samples_queue = this->samples_queues[old_queue];
 
-        pqxx::work tx{pgconn};
+        pqxx::work tx{*pgconn};
         tx.exec("BEGIN");
         for (auto &kv : samples_queue)
         {

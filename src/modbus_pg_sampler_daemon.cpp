@@ -63,10 +63,16 @@ int main(int argc, char **argv)
         json tags_json = simomett::json_from_file(parser.get<std::string>("tags_json"));
 
         // workers setup
-        //std::vector<ConsumerWorker> consumerWorkers ???
         std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
-        consumerWorkers.push_back(std::make_shared<PostgreWorker>(logger, config_json["postgres"]["host"].get<std::string>(), config_json["postgres"]["port"].get<uint16_t>(), config_json["postgres"]["dbname"].get<std::string>(), config_json["postgres"]["user"].get<std::string>(), config_json["postgres"]["password"].get<std::string>(), config_json["postgres"]["storing_interval"].get<float>(), tags_json));
-        
+        PostgreWorkerConfig pg_config = {
+            config_json["postgres"]["host"].get<std::string>(),
+            config_json["postgres"]["port"].get<uint16_t>(),
+            config_json["postgres"]["dbname"].get<std::string>(),
+            config_json["postgres"]["user"].get<std::string>(),
+            config_json["postgres"]["password"].get<std::string>()
+        };
+        consumerWorkers.push_back(std::make_shared<PostgreWorker>(logger, pg_config, config_json["postgres"]["storing_interval"].get<float>(), tags_json));
+
         for (auto worker : consumerWorkers)
             worker->start();
 

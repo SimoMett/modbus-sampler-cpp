@@ -20,7 +20,6 @@ struct PostgreWorkerConfig
 class PostgreWorker: public ConsumerWorker
 {
 public:
-    PostgreWorker(std::shared_ptr<spdlog::logger> logger, std::string host, uint16_t port, std::string dbname, std::string user, std::string password, float dump_time_s, json tags);
     PostgreWorker(std::shared_ptr<spdlog::logger> logger, PostgreWorkerConfig config, float dump_time_s, json tags);
     ~PostgreWorker();
 
@@ -33,7 +32,7 @@ public:
     void push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point);
     void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point);
 private:
-    pqxx::connection pgconn;
+    pqxx::connection * pgconn;
 
     std::unique_ptr<std::thread> run_thread;
     bool should_close;
