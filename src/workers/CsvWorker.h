@@ -25,6 +25,7 @@ public:
     void push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point);
     void push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point);
     void push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point);
+    void push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point);
 
 private:
     std::unique_ptr<std::thread> run_thread;
@@ -33,10 +34,11 @@ private:
     const std::shared_ptr<spdlog::logger> logger;
     const std::filesystem::path output_dir;
     const std::chrono::milliseconds dump_time_ms;
-    std::unordered_map<uint32_t, std::string> words_names;
-    std::unordered_map<uint32_t, std::string> floats_names;
-    std::unordered_map<uint32_t, std::string> dwords_names;
-    std::unordered_map<uint32_t, std::string> coils_names;
+    std::unordered_map<addr_t, std::string> words_names;
+    std::unordered_map<addr_t, std::string> floats_names;
+    std::unordered_map<addr_t, std::string> dwords_names;
+    std::unordered_map<addr_t, std::string> coils_names;
+    std::unordered_map<addr_t, std::array<std::string, 16>> bits_names;
     unsigned int current_queue;
     std::unordered_map<std::string, std::vector<std::string>> samples_queues[2];
 

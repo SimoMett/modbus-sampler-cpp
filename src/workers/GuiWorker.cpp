@@ -254,6 +254,10 @@ void GuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono:
     }
 }
 
+void GuiWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
+{
+}
+
 void GuiWorker::dump_samples()
 {
     for (auto &kv : samples_queues)

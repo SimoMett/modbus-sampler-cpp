@@ -31,6 +31,17 @@ CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_
             }
         }
     }
+
+    // dedicated logic for parsing bits addresses and bitmasks.
+    if (!tags["bits"].is_null())
+    {
+        std::array<std::string, 16> rr;
+        for(int i=0; i<16; i++)
+        {
+            rr[i] = tags["bits"]["tags"][i].is_null() ? "" : tags["bits"]["tags"][i].get<std::string>();
+        }
+        bits_names.insert({tags["bits"]["address"].get<uint32_t>(), rr});
+    }
 }
 
 CsvWorker::~CsvWorker()
@@ -39,6 +50,7 @@ CsvWorker::~CsvWorker()
     this->dwords_names.clear();
     this->floats_names.clear();
     this->coils_names.clear();
+    this->bits_names.clear();
 }
 
 void CsvWorker::start()
@@ -189,5 +201,29 @@ void CsvWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono:
         csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
 
         this->samples_queues[this->current_queue][tag_name].push_back(csv_line.str());
+    }
+}
+
+void CsvWorker::push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point instant)
+{
+    //FIXME: never used. Need testing.
+    for (BitAddressValue &sample : samples)
+    {
+        if (this->bits_names.find(sample.address) == this->bits_names.end())
+            continue;
+
+        for(int i = 0; i < 16; i++)
+        {
+            const std::string & bn = this->bits_names[sample.address][i];
+            if(!bn.empty())
+            {
+                std::string tag_name = ConsumerWorker::format_name(bn);
+
+                std::ostringstream csv_line;
+                csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
+
+                this->samples_queues[this->current_queue][tag_name].push_back(csv_line.str());
+            }
+        }        
     }
 }

@@ -31,6 +31,8 @@ public:
     void push_floats(std::vector<AddressValue<float>>, std::chrono::system_clock::time_point);
     void push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point);
     void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point);
+    void push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point);
+
 private:
     pqxx::connection * pgconn;
 
@@ -39,9 +41,9 @@ private:
     bool is_running;
     const std::shared_ptr<spdlog::logger> logger;
     const std::chrono::milliseconds dump_time_ms;
-    std::unordered_map<uint32_t, std::string> words_names;
-    std::unordered_map<uint32_t, std::string> dwords_names;
-    std::unordered_map<uint32_t, std::string> floats_names;
+    std::unordered_map<addr_t, std::string> words_names;
+    std::unordered_map<addr_t, std::string> dwords_names;
+    std::unordered_map<addr_t, std::string> floats_names;
     
     /*template <typename T>
     concept RegisterValue = std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t> || std::is_same_v<T, float>;

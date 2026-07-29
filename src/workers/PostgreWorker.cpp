@@ -99,6 +99,10 @@ void PostgreWorker::push_coils(std::vector<AddressValue<bool>>, std::chrono::sys
 {
 }
 
+void PostgreWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
+{
+}
+
 void PostgreWorker::dump_samples()
 {
     if (this->samples_queues[this->current_queue].size())
