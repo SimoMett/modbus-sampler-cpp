@@ -39,17 +39,32 @@ void ModbusWorker::parse_tags(json tags)
         }
     }
 
-    // dedicated logic for parsing bits.
-    /*if (!tags["bits"].is_null())
+    // dedicated logic for parsing bits addresses and bitmasks.
+    if (!tags["bits"].is_null())
     {
-        std::vector<AddessAndBit> addresses;
+        std::vector<uint32_t> addresses;
         for (json w : tags["bits"])
         {
-            addresses.push_back({w["address"], w["bit"]});
+            uint32_t addr = w["address"];
+            uint16_t bitmask = 0;
+            
+            for(int i = 0; i < 16; i++)
+            {
+                if(w["tags"][i].is_null())
+                    break;
+
+                if(!w["tags"][i].get<std::string>().empty())
+                    bitmask |= (1 << i);
+            }
+            if(bitmask != 0)
+            {
+                addresses.push_back(addr);
+                bit_masks.insert(std::make_pair(addr, bitmask));
+            }
         }
 
         this->bits = segmentize(addresses, 1);
-    }*/
+    }
 }
 
 ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::TcpSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
@@ -268,17 +283,17 @@ void ModbusWorker::fetch_and_push_bits(const Segment &s)
 
     for (auto us : unprocessed_samples)
     {
-        uint32_t addr = 0;
-        uint8_t bit = 0;
+        uint32_t addr = us.address;
+        uint8_t bit = bit_masks[addr];
         bool val = (us.val & (1 << bit) != 0);
         samples.push_back(BitAddressValue{addr, bit, val});
     }
 
-    /*for (const auto &worker : this->workers)
+    for (const auto &worker : this->workers)
     {
         if (worker->running())
-            worker->push_coils(samples, now);
-    }*/
+            worker->push_bits(samples, now);
+    }
 }
 
 void ModbusWorker::stop()

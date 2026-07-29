@@ -63,6 +63,8 @@ private:
     std::vector<Segment> floats;
     std::vector<Segment> dwords;
 
+    std::unordered_map<uint32_t, uint16_t> bit_masks;
+
     void parse_tags(json tags);
 
     void run();
