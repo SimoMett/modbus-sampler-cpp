@@ -12,7 +12,7 @@ include_directories(src/ include/ include/imgui/ ${SDL2_INCLUDE_DIRS})
 if(WIN32)
 set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.dll")
 else()
-set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.so")
+set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/libmodbus.so")
 endif()
 
 set(COMMON_SOURCE_CPP

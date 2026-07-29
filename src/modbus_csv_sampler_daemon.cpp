@@ -1,6 +1,7 @@
 #include <sstream>
 #include <csignal>
 #include "argparse/argparse.hpp"
+#include "modbus/ModbusGlobal.h"
 #include "nlohmann/json.hpp"
 #include "workers/ModbusWorker.h"
 #include "workers/CsvWorker.h"
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
         for (auto worker : consumerWorkers)
             worker->start();
 
-        Modbus::TcpSettings modbus_settings;
+        Modbus::NetSettings modbus_settings;
         modbus_settings.host = config_json["modbus_connection"]["host"].get<std::string>().c_str();
         modbus_settings.port = config_json["modbus_connection"]["port"].get<uint16_t>();
         modbus_settings.timeout = 3000;

@@ -67,7 +67,7 @@ void ModbusWorker::parse_tags(json tags)
     }
 }
 
-ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::TcpSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
+ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::NetSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
                                                                                                                                                                             port(createClientPort(Modbus::TCP, modbus_settings, true)), client(1, this->port.get())
 {
     this->should_close = false;

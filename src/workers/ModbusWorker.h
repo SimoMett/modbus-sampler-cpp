@@ -36,7 +36,7 @@ struct AddessAndBit
 class ModbusWorker
 {
 public:
-    ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::TcpSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>>);
+    ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::NetSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>>);
     ~ModbusWorker();
 
     void start();

@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         for (auto worker : consumerWorkers)
             worker->start();
 
-        Modbus::TcpSettings modbus_settings;
+        Modbus::NetSettings modbus_settings;
         modbus_settings.host = config_json["modbus_connection"]["host"].get<std::string>().c_str();
         modbus_settings.port = config_json["modbus_connection"]["port"].get<uint16_t>();
         modbus_settings.timeout = 3000;
