@@ -20,3 +20,4 @@ include/imgui/.gitignore
 include/imgui/.gitattributes
 include/imgui/.editorconfig
 include/imgui/LICENSE.txt
+include/modbus/*
