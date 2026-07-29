@@ -11,6 +11,7 @@ using nlohmann::json;
 class GuiWorker: public ConsumerWorker
 {
 public:
+    static const std::string WORKER_VERSION;
 
     GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags);
     ~GuiWorker();

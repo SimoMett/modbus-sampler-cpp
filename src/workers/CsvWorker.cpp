@@ -6,9 +6,11 @@
 
 using simomett::MbValueType;
 
+const std::string CsvWorker::WORKER_VERSION = "CsvWorker build: 1";
+
 CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags) : logger(logger), output_dir(output_dir), dump_time_ms(static_cast<int>(dump_time_s * 1000)), is_running(false), current_queue(0)
 {
-    std::unordered_map<uint32_t, std::string> *maps[4];
+    std::unordered_map<addr_t, std::string> *maps[4];
     maps[MbValueType::WORD_TYPE] = &this->words_names;
     maps[MbValueType::DWORD_TYPE] = &this->dwords_names;
     maps[MbValueType::REAL_TYPE] = &this->floats_names;
@@ -26,7 +28,7 @@ CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_
         {
             for (json s : tags[json_str[v]])
             {
-                maps[v]->insert({s["address"].get<uint32_t>(),
+                maps[v]->insert({s["address"].get<addr_t>(),
                                 s["tag"].get<std::string>()});
             }
         }
@@ -40,7 +42,7 @@ CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_
         {
             rr[i] = tags["bits"]["tags"][i].is_null() ? "" : tags["bits"]["tags"][i].get<std::string>();
         }
-        bits_names.insert({tags["bits"]["address"].get<uint32_t>(), rr});
+        bits_names.insert({tags["bits"]["address"].get<addr_t>(), rr});
     }
 }
 

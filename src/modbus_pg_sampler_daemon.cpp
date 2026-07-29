@@ -11,7 +11,6 @@
 #include "simomett/common.h"
 
 const std::string program_name = "ModbusSamplerDaemon";
-const std::string program_version = "0.1";
 
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal)
@@ -21,7 +20,7 @@ void signal_handler(int signal)
 
 int main(int argc, char **argv)
 {
-    argparse::ArgumentParser parser(program_name, program_version);
+    argparse::ArgumentParser parser(program_name, PostgreWorker::WORKER_VERSION);
     parser.add_argument("--config").default_value("modbus_sampler_daemon_config.json").help("use different configuration file");
     parser.add_argument("--log").default_value("modbus_sampler_daemon.log").help("put logs in a different file");
     parser.add_argument("tags_json").required();

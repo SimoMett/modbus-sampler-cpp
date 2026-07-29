@@ -20,7 +20,6 @@
 #include "workers/ModbusWorker.h"
 
 const std::string program_name = "Modbus graph plotter";
-const std::string program_version = "0.1";
 
 // Main code
 #ifdef _WIN32
@@ -34,7 +33,7 @@ int main(int argc, char ** argv)
     ::SetProcessDPIAware();
 #endif
     
-    argparse::ArgumentParser parser(program_name, program_version);
+    argparse::ArgumentParser parser(program_name, GuiWorker::WORKER_VERSION);
     parser.add_argument("--config").default_value("modbus_sampler_daemon_config.json").help("use different configuration file");
     parser.add_argument("--log").default_value("modbus_sampler_daemon.log").help("put logs in a different file");
     parser.add_argument("tags_json").required();

@@ -4,6 +4,8 @@
 #include "PostgreWorker.h"
 #include "simomett/common.h"
 
+const std::string PostgreWorker::WORKER_VERSION = "PostgreWorker build: 1";
+
 PostgreWorker::PostgreWorker(std::shared_ptr<spdlog::logger> logger, PostgreWorkerConfig config, float dump_time_s, json tags): logger(logger), dump_time_ms(static_cast<int>(dump_time_s * 1000))
 {
     std::stringstream connection_str;

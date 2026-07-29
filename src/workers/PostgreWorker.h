@@ -20,6 +20,8 @@ struct PostgreWorkerConfig
 class PostgreWorker: public ConsumerWorker
 {
 public:
+    static const std::string WORKER_VERSION;
+    
     PostgreWorker(std::shared_ptr<spdlog::logger> logger, PostgreWorkerConfig config, float dump_time_s, json tags);
     ~PostgreWorker();
 

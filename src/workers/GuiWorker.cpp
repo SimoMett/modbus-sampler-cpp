@@ -8,9 +8,11 @@
 #include "implot/implot.h"
 #include "simomett/common.h"
 
+const std::string GuiWorker::WORKER_VERSION = "GuiWorker build: 1";
+
 GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger), refresh_rate_ms(gui_config["refresh_rate"].get<unsigned short>()), deque_max_len(gui_config["deque_max_len"].get<unsigned short>()), light_theme(gui_config["light_theme"].get<bool>())
 {
-    std::unordered_map<uint32_t, std::string> *maps[4];
+    std::unordered_map<addr_t, std::string> *maps[4];
     maps[MbValueType::WORD_TYPE] = &this->words_names;
     maps[MbValueType::DWORD_TYPE] = &this->dwords_names;
     maps[MbValueType::REAL_TYPE] = &this->floats_names;
@@ -30,7 +32,7 @@ GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_
             {
                 std::string formatted_tag_name = ConsumerWorker::format_name(s["tag"].get<std::string>());
 
-                maps[v]->insert({s["address"].get<uint32_t>(), formatted_tag_name});
+                maps[v]->insert({s["address"].get<addr_t>(), formatted_tag_name});
                 this->samples_queues.insert({formatted_tag_name, SamplesRingQueue(deque_max_len, v)});
             }
         }

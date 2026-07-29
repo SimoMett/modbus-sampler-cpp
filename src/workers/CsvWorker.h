@@ -13,6 +13,8 @@ using json = nlohmann::json;
 class CsvWorker: public ConsumerWorker
 {
 public:
+    static const std::string WORKER_VERSION;
+    
     CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags);
     ~CsvWorker();
 
