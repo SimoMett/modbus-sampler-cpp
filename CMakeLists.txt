@@ -9,7 +9,11 @@ find_package(SDL2 REQUIRED)
 
 include_directories(src/ include/ include/imgui/ ${SDL2_INCLUDE_DIRS})
 
+if(WIN32)
 set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.dll")
+else()
+set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.so")
+endif()
 
 set(COMMON_SOURCE_CPP
     src/workers/ConsumerWorker.cpp
@@ -51,7 +55,7 @@ target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
 if(WIN32)
     target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
 else()
-    target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES})
+    target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} GL ${SDL2_LIBRARIES})
 endif()
 
 add_executable(modbus_pg_sampler_daemon
