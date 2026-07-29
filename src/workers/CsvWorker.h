@@ -16,18 +16,18 @@ public:
     static const std::string WORKER_VERSION;
     
     CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags);
-    ~CsvWorker();
+    ~CsvWorker() override;
 
-    void start();
-    void join();
-    void stop();
-    bool running();
+    void start() override;
+    void join() override;
+    void stop() override;
+    bool running() override;
 
-    void push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point);
-    void push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point);
-    void push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point);
-    void push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point);
-    void push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point);
+    void push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point) override;
+    void push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point) override;
+    void push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point) override;
+    void push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point) override;
+    void push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point) override;
 
 private:
     std::unique_ptr<std::thread> run_thread;
@@ -44,6 +44,6 @@ private:
     unsigned int current_queue;
     std::unordered_map<std::string, std::vector<std::string>> samples_queues[2];
 
-    void dump_samples();
+    void dump_samples() override;
     void run();
 };

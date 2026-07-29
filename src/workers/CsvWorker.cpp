@@ -85,11 +85,11 @@ void CsvWorker::dump_samples()
         // dump to csv
         auto &q = this->samples_queues[old_queue];
         std::vector<std::string> keys;
-        for (auto &kv : q)
+        for (const auto &kv : q)
             keys.push_back(kv.first);
 
         // std::cout << keys.size() << "\n";
-        for (std::string filename : keys)
+        for (const std::string & filename : keys)
         {
             // std::cout << filename << "\n";
             std::ofstream output(this->output_dir / (filename + ".csv"), std::ios_base::app);
@@ -97,7 +97,7 @@ void CsvWorker::dump_samples()
                 throw std::runtime_error(
                     std::string("Couldn't open file ") + (this->output_dir / (filename + ".csv")).string() + ". Does the output folder exists?");
 
-            for (auto &csv_line : q[filename])
+            for (const auto &csv_line : q[filename])
                 output << csv_line << "\n";
 
             q[filename].clear();
