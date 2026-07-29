@@ -5,6 +5,7 @@
 #include "GuiWorker.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl2.h"
+#include "imgui_internal.h"
 #include "implot/implot.h"
 #include "simomett/common.h"
 
@@ -74,12 +75,17 @@ void GuiWorker::run()
             throw std::runtime_error(std::string("Error: SDL_CreateWindow(): ") + SDL_GetError());
 
         SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+        if (gl_context == nullptr)
+            throw std::runtime_error(std::string("Error: SDL_GL_CreateContext(): ") + SDL_GetError());
+
         SDL_GL_MakeCurrent(window, gl_context);
         SDL_GL_SetSwapInterval(1); // Enable vsync
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
+        ImGuiContext * imgui_ctx = ImGui::CreateContext();
+        if (imgui_ctx == nullptr)
+            throw std::runtime_error(std::string("Failed to create ImGui context"));
         ImGuiIO &io = ImGui::GetIO();
         (void)io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
