@@ -42,6 +42,17 @@
                 "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
                 "CMAKE_PREFIX_PATH": "/usr/x86_64-w64-mingw32"
             }
+        },
+        {
+            "name": "windows-debug",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "CMAKE_CXX_EXTENSIONS": "OFF"
+            }
         }
     ],
     "buildPresets": [
@@ -56,6 +67,10 @@
         {
             "name": "windows-mingw-release",
             "configurePreset": "windows-mingw-release"
+        },
+        {
+            "name": "windows-debug",
+            "configurePreset": "windows-debug"
         }
     ]
 }
