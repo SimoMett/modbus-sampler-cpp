@@ -7,7 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 find_package(SDL2 REQUIRED)
 
-include_directories(src/ include/ include/imgui/ ${SDL2_INCLUDE_DIRS})
+include_directories(src/ include/ include/imgui/)
 
 if(WIN32)
 set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.dll")
@@ -38,6 +38,7 @@ add_executable(modbus_csv_sampler_daemon
     src/workers/CsvWorker.cpp
 )
 target_compile_features(modbus_csv_sampler_daemon PRIVATE cxx_std_20)
+target_link_options(modbus_csv_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB} "libwinpthread.a")
 else()
@@ -52,6 +53,7 @@ add_executable(modbus_graph_plotter
     src/workers/SamplesRingQueue.cpp
 )
 target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
+target_link_options(modbus_graph_plotter PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
 else()
@@ -64,6 +66,7 @@ add_executable(modbus_pg_sampler_daemon
     src/workers/PostgreWorker.cpp
 )
 target_compile_features(modbus_pg_sampler_daemon PRIVATE cxx_std_20)
+target_link_options(modbus_pg_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx "libwinpthread.a")
 else()
