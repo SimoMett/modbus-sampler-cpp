@@ -174,7 +174,7 @@ void GuiWorker::run()
             ImGui::End();
 
             // Rendering
-            std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+            std::chrono::system_clock::time_point _start = std::chrono::system_clock::now();
             ImGui::Render();
             glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
             glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
@@ -183,7 +183,7 @@ void GuiWorker::run()
             ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
             SDL_GL_SwapWindow(window);
 
-            std::chrono::nanoseconds delta = (std::chrono::system_clock::now() - start);
+            std::chrono::nanoseconds delta = (std::chrono::system_clock::now() - _start);
             std::chrono::milliseconds maxDelta = std::chrono::milliseconds(30);
             if (delta < maxDelta)
                 std::this_thread::sleep_for(maxDelta - delta);
@@ -221,7 +221,7 @@ bool GuiWorker::running()
 
 void GuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point time)
 {
-    for (auto &sample : samples)
+    for (const auto &sample : samples)
     {
         std::string tag_name = words_names[sample.address];
         MbValue v;
@@ -232,7 +232,7 @@ void GuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
 }
 void GuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point time)
 {
-    for (auto &sample : samples)
+    for (const auto &sample : samples)
     {
         std::string tag_name = floats_names[sample.address];
         MbValue v;
@@ -242,7 +242,7 @@ void GuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
 }
 void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point time)
 {
-    for (auto &sample : samples)
+    for (const auto &sample : samples)
     {
         std::string tag_name = dwords_names[sample.address];
         MbValue v;
@@ -253,7 +253,7 @@ void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
 
 void GuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point time)
 {
-    for (auto &sample : samples)
+    for (const auto &sample : samples)
     {
         std::string tag_name = coils_names[sample.address];
         MbValue v;

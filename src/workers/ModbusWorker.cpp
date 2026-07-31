@@ -285,7 +285,7 @@ void ModbusWorker::fetch_and_push_bits(const Segment &s)
     {
         uint32_t addr = us.address;
         uint8_t bit = bit_masks[addr];
-        bool val = (us.val & (1 << bit) != 0);
+        bool val = (us.val & (1 << bit)) != 0;
         samples.push_back(BitAddressValue{addr, bit, val});
     }
 

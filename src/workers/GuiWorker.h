@@ -14,17 +14,17 @@ public:
     static const std::string WORKER_VERSION;
 
     GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags);
-    ~GuiWorker();
+    ~GuiWorker() override;
 
-    void start();
-    void join();
-    void stop();
-    bool running();
-    void push_words(std::vector<AddressValue<uint16_t>>, std::chrono::system_clock::time_point);
-    void push_floats(std::vector<AddressValue<float>>, std::chrono::system_clock::time_point);
-    void push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point);
-    void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point);
-    void push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point);
+    void start() override;
+    void join() override;
+    void stop() override;
+    bool running() override;
+    void push_words(std::vector<AddressValue<uint16_t>>, std::chrono::system_clock::time_point) override;
+    void push_floats(std::vector<AddressValue<float>>, std::chrono::system_clock::time_point) override;
+    void push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point) override;
+    void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point) override;
+    void push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point) override;
 
 private:
     const std::string window_name;
@@ -43,5 +43,5 @@ private:
     const bool light_theme;
 
     void run();
-    void dump_samples();
+    void dump_samples() override;
 };
