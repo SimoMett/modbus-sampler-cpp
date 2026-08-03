@@ -47,9 +47,8 @@ private:
     std::unordered_map<addr_t, std::string> dwords_names;
     std::unordered_map<addr_t, std::string> floats_names;
     
-    /*template <typename T>
-    concept RegisterValue = std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t> || std::is_same_v<T, float>;
-    void push_generic(std::vector<AddressValue<T>>, std::chrono::system_clock::time_point);*/
+    template <RegisterValue T>
+    void push_generic(std::vector<AddressValue<T>>, std::chrono::system_clock::time_point, std::unordered_map<uint32_t, std::string> &);
 
     unsigned int current_queue;
     std::unordered_map<std::string, std::vector<std::string>> samples_queues[2];
