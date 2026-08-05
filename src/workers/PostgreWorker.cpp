@@ -21,10 +21,12 @@ PostgreWorker::~PostgreWorker()
 
 void PostgreWorker::start()
 {
+    this->run_thread = std::make_unique<std::thread>(&PostgreWorker::run, this);
 }
 
 void PostgreWorker::join()
 {
+    this->run_thread->join();
 }
 
 void PostgreWorker::stop()
@@ -75,8 +77,25 @@ void PostgreWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std
     push_generic(samples, instant, this->dwords_names);
 }
 
-void PostgreWorker::push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point)
+void PostgreWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point instant)
 {
+    for (AddressValue<bool> &sample : samples)
+    {
+        if (this->coils_names.find(sample.address) == this->coils_names.end())
+        {
+            // std::cout << "address " << sample.address << " not found \n";
+            continue;
+        }
+        std::string table_name = ConsumerWorker::format_name(this->coils_names[sample.address]); //also 'tag_name'
+        // std::cout << tag_name << "\n";
+
+        std::stringstream query_line;
+        query_line << "INSERT INTO "<< table_name << " (timeandday, value) VALUES (timestamp '" << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "', " << (sample.val? 1 : 0) << ");";
+        //std::cout << query_line.str() << "\n";
+
+        //TODO: provare con una lista semplice invece di una unordered_map
+        this->samples_queues[this->current_queue][table_name].push_back(query_line.str());
+    }
 }
 
 void PostgreWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)

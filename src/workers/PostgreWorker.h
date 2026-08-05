@@ -46,6 +46,7 @@ private:
     std::unordered_map<addr_t, std::string> words_names;
     std::unordered_map<addr_t, std::string> dwords_names;
     std::unordered_map<addr_t, std::string> floats_names;
+    std::unordered_map<addr_t, std::string> coils_names;
     
     template <RegisterValue T>
     void push_generic(std::vector<AddressValue<T>>, std::chrono::system_clock::time_point, std::unordered_map<uint32_t, std::string> &);
