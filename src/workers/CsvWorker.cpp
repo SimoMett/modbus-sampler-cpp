@@ -8,7 +8,7 @@ using simomett::MbValueType;
 
 const std::string CsvWorker::WORKER_VERSION = "CsvWorker build: 1";
 
-CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags) : logger(logger), output_dir(output_dir), dump_time_ms(static_cast<int>(dump_time_s * 1000)), is_running(false), current_queue(0)
+CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags) : should_close(false), logger(logger), output_dir(output_dir), dump_time_ms(static_cast<int>(dump_time_s * 1000)), is_running(false), current_queue(0)
 {
     std::unordered_map<addr_t, std::string> *maps[4];
     maps[MbValueType::WORD_TYPE] = &this->words_names;

@@ -19,6 +19,9 @@ struct BitAddressValue
     bool val;
 };
 
+template <typename T>
+concept RegisterValue = std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t> || std::is_same_v<T, float>;
+
 class ConsumerWorker
 {
 public:
