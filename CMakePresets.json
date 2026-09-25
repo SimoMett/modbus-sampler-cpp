@@ -67,8 +67,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_CXX_STANDARD": "20",
                 "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-                "CMAKE_CXX_EXTENSIONS": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_CXX_EXTENSIONS": "OFF"
             },
             "condition": {
                 "type": "equals",
