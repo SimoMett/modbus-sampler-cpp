@@ -4,7 +4,7 @@
 
 const std::string SFMLWorker::WORKER_VERSION = "SFMLWorker build: 1";
 
-SFMLWorker::SFMLWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags): fps_limit(5), window_name(window_name)
+SFMLWorker::SFMLWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags): logger(logger), fps_limit(5), window_name(window_name)
 {
     for(const char * field : {"background", "tags"})
     {
@@ -72,12 +72,6 @@ void SFMLWorker::stop()
     this->should_close = true;
 }
 
-void SFMLWorker::self_close()
-{
-    this->should_close = true;
-    this->is_running = false;
-}
-
 bool SFMLWorker::running()
 {
     return is_running;
@@ -132,14 +126,8 @@ void SFMLWorker::run()
 
         sf::Sprite window_sprite(window_texture);
 
-        while (window.isOpen())
+        while (!this->should_close)
         {
-            while ( const std::optional event = window.pollEvent() )
-            {
-                if ( event->is<sf::Event::Closed>() )
-                    window.close();
-            }
-
             auto bitmap = document->renderToBitmap();
             bitmap.convertToRGBA();
             sf::Image bg_image(sf::Vector2u(bitmap.width(), bitmap.height()), bitmap.data());
@@ -147,7 +135,14 @@ void SFMLWorker::run()
             window.clear(SFMLWorker::background_color);
             window.draw(window_sprite);
             window.display();
+
+            while (const std::optional event = window.pollEvent())
+            {
+                if (event->is<sf::Event::Closed>())
+                    this->should_close = true;
+            }
         }
+        window.close();
         this->logger->info("SFMLGui worker stopped");
     }
     catch(std::exception & e)
@@ -155,7 +150,7 @@ void SFMLWorker::run()
         this->logger->error(e.what());
         this->logger->error("SFMLGui worker stopped due to error");
     }
-    this->self_close();
+    this->is_running = false;
 }
 
 inline void SFMLWorker::setItemColor(std::unique_ptr<lunasvg::Document> & doc, const std::string & item_name, const std::string & color)
@@ -175,8 +170,7 @@ void SFMLWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::ch
     for (auto &sample : samples)
     {
         std::string tag_name = words_names[sample.address];
-        MbValue val;
-        val.word = sample.val;
+        uint16_t val = sample.val;
 
         if(!gui_tags[tag_name].is_null())
         {
@@ -184,7 +178,7 @@ void SFMLWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::ch
             if(gui_tags[tag_name]["color"].is_array())
             {
                 size_t len = gui_tags[tag_name]["color"].array().size();
-                std::string color = gui_tags[tag_name]["color"].array()[val.word % len].get<std::string>();
+                std::string color = gui_tags[tag_name]["color"].array()[val % len].get<std::string>();
                 setItemColor(this->document, svg_field, color);
             }
             else if(gui_tags[tag_name]["format"].is_string())
@@ -194,12 +188,11 @@ void SFMLWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::ch
                 if(gui_tags[tag_name]["rescale"].is_array())
                 {
                     std::array<float, 4> v = gui_tags[tag_name]["rescale"].get<std::array<float, 4>>();
-                    //float rescaled_val = ((float)val.word - v[0])/((float)v[1] - (float)v[0])*((float)v[3] - (float)v[2])+(float)v[2];
-                    float rescaled_val = ((float)val.word - v[0])/(v[1] - v[0])*(v[3] - v[2])+v[2];
+                    float rescaled_val = ((float)val - v[0])/(v[1] - v[0])*(v[3] - v[2])+v[2];
                     std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), rescaled_val);
                 }
                 else
-                    std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), val.word);
+                    std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), val);
 
                 std::string txt = std::string(buffer);
                 setFieldText(this->document, svg_field, txt);
@@ -208,7 +201,120 @@ void SFMLWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::ch
     }
 }
 
-void SFMLWorker::push_floats(std::vector<AddressValue<float>>, std::chrono::system_clock::time_point){}
-void SFMLWorker::push_dwords(std::vector<AddressValue<uint32_t>>, std::chrono::system_clock::time_point){}
-void SFMLWorker::push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point){}
-void SFMLWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point){}
+void SFMLWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point)
+{
+    for (auto &sample : samples)
+    {
+        std::string tag_name = coils_names[sample.address];
+        float val = sample.val;
+
+        if(!gui_tags[tag_name].is_null())
+        {
+            std::string svg_field = gui_tags[tag_name]["svgField"].get<std::string>();
+            if(gui_tags[tag_name]["format"].is_string())
+            {
+                char buffer[16];
+
+                if(gui_tags[tag_name]["rescale"].is_array())
+                {
+                    std::array<float, 4> v = gui_tags[tag_name]["rescale"].get<std::array<float, 4>>();
+                    float rescaled_val = (val - v[0])/(v[1] - v[0])*(v[3] - v[2])+v[2];
+                    std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), rescaled_val);
+                }
+                else
+                    std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), val);
+
+                std::string txt = std::string(buffer);
+                setFieldText(this->document, svg_field, txt);
+            }
+        }
+    }
+}
+
+void SFMLWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point)
+{
+    for (auto &sample : samples)
+    {
+        std::string tag_name = coils_names[sample.address];
+        uint32_t val = sample.val;
+
+        if(!gui_tags[tag_name].is_null())
+        {
+            std::string svg_field = gui_tags[tag_name]["svgField"].get<std::string>();
+            if(gui_tags[tag_name]["color"].is_array())
+            {
+                size_t len = gui_tags[tag_name]["color"].array().size();
+                std::string color = gui_tags[tag_name]["color"].array()[val % len].get<std::string>();
+                setItemColor(this->document, svg_field, color);
+            }
+            else if(gui_tags[tag_name]["format"].is_string())
+            {
+                char buffer[16];
+
+                if(gui_tags[tag_name]["rescale"].is_array())
+                {
+                    std::array<float, 4> v = gui_tags[tag_name]["rescale"].get<std::array<float, 4>>();
+                    float rescaled_val = ((float)val - v[0])/(v[1] - v[0])*(v[3] - v[2])+v[2];
+                    std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), rescaled_val);
+                }
+                else
+                    std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), val);
+
+                std::string txt = std::string(buffer);
+                setFieldText(this->document, svg_field, txt);
+            }
+        }
+    }
+}
+
+void SFMLWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point)
+{
+    for (auto &sample : samples)
+    {
+        std::string tag_name = coils_names[sample.address];
+        bool val = sample.val;
+
+        if(!gui_tags[tag_name].is_null())
+        {
+            std::string svg_field = gui_tags[tag_name]["svgField"].get<std::string>();
+            if(gui_tags[tag_name]["color"].is_array())
+            {
+                std::string color = gui_tags[tag_name]["color"].array()[val? 1 : 0].get<std::string>();
+                setItemColor(this->document, svg_field, color);
+            }
+            else if(gui_tags[tag_name]["format"].is_string())
+            {
+                char buffer[16];
+                std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), val);
+                std::string txt = std::string(buffer);
+                setFieldText(this->document, svg_field, txt);
+            }
+        }
+    }
+}
+
+void SFMLWorker::push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point)
+{
+    for (auto &sample : samples)
+    {
+        std::string tag_name = coils_names[sample.address];
+        bool val = sample.val & (1 << sample.bit);
+
+        if(!gui_tags[tag_name].is_null())
+        {
+            std::string svg_field = gui_tags[tag_name]["svgField"].get<std::string>();
+            if(gui_tags[tag_name]["color"].is_array())
+            {
+                std::string color = gui_tags[tag_name]["color"].array()[val? 1 : 0].get<std::string>();
+                setItemColor(this->document, svg_field, color);
+            }
+            else if(gui_tags[tag_name]["format"].is_string())
+            {
+                char buffer[16];
+                std::snprintf(buffer, sizeof(buffer), gui_tags[tag_name]["format"].get<std::string>().c_str(), val);
+                std::string txt = std::string(buffer);
+                setFieldText(this->document, svg_field, txt);
+            }
+        }
+    }
+}

@@ -42,7 +42,6 @@ private:
 
     void run();
     void dump_samples();
-    void self_close();
 
     static constexpr sf::Color background_color = sf::Color(46, 106, 201);
     static void patchDocument(pugi::xml_document & doc);
