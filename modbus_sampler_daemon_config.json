@@ -4,6 +4,7 @@
         "port": 32768,
         "user": "postgres",
         "password": "postgre",
+        "dbname": "postgres",
         "storing_interval": 1.5
         
     },

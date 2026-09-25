@@ -32,6 +32,8 @@ set(IMGUI_SOURCE_CPP
     include/imgui/backends/imgui_impl_opengl2.cpp
 )
 
+set(PUGIXML_SOURCE_CPP include/pugixml/src/pugixml.cpp)
+
 add_executable(modbus_csv_sampler_daemon
     src/modbus_csv_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
@@ -48,7 +50,7 @@ endif()
 add_executable(modbus_graph_plotter
     src/modbus_graph_plotter.cpp
     ${COMMON_SOURCE_CPP}
-    src/workers/GuiWorker.cpp
+    src/workers/ImGuiWorker.cpp
     ${IMGUI_SOURCE_CPP}
     src/workers/SamplesRingQueue.cpp
 )
@@ -71,4 +73,34 @@ if(WIN32)
     target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx "libwinpthread.a")
 else()
     target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx)
+endif()
+
+####
+include(FetchContent)
+FetchContent_Declare(SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.1.0
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM)
+FetchContent_MakeAvailable(SFML)
+
+FetchContent_Declare(lunasvg
+    GIT_REPOSITORY https://github.com/sammycage/lunasvg.git
+    GIT_TAG v3.5.0
+)
+FetchContent_MakeAvailable(lunasvg)
+
+add_executable(modbus_sfml_sampler_daemon
+    src/modbus_sfml_sampler_daemon.cpp
+    ${COMMON_SOURCE_CPP}
+    ${PUGIXML_SOURCE_CPP}
+    src/workers/SFMLWorker.cpp
+)
+target_compile_features(modbus_sfml_sampler_daemon PRIVATE cxx_std_20)
+target_link_options(modbus_sfml_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
+if(WIN32)
+    target_link_libraries(modbus_sfml_sampler_daemon ${MODBUS_LIB} plutovg lunasvg SFML::Graphics "libwinpthread.a")
+else()
+    target_link_libraries(modbus_sfml_sampler_daemon ${MODBUS_LIB} plutovg lunasvg SFML::Graphics)
 endif()

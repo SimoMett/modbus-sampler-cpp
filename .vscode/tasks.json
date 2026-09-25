@@ -48,7 +48,7 @@
                 "-g",
                 "${workspaceFolder}\\src\\modbus_graph_plotter.cpp",
                 "${workspaceFolder}\\src\\workers\\ConsumerWorker.cpp",
-                "${workspaceFolder}\\src\\workers\\GuiWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\ImGuiWorker.cpp",
                 "${workspaceFolder}\\src\\workers\\ModbusWorker.cpp",
                 "${workspaceFolder}\\src\\workers\\SamplesRingQueue.cpp",
                 "${workspaceFolder}\\include\\imgui\\backends\\imgui_impl_sdl2.cpp",
@@ -67,6 +67,43 @@
                 "-l:libwinpthread.a",
                 "-lopengl32",
                 "-lSDL2"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++.exe build modbus sfml gui",
+            "command": "C:/msys64/ucrt64/bin/g++.exe",
+            "args": [
+                "-pipe",
+                "-fdiagnostics-color=always",
+                "-std=c++20",
+                "-O1",
+                "-I${workspaceFolder}\\include",
+                "-I${workspaceFolder}\\include\\imgui",
+                "-I${workspaceFolder}\\include\\imgui\\backends",
+                "-ISDL2",
+                "-g",
+                "${workspaceFolder}\\src\\modbus_graph_plotter.cpp",
+                "${workspaceFolder}\\src\\workers\\ConsumerWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\ModbusWorker.cpp",
+                "${workspaceFolder}\\src\\workers\\SamplesRingQueue.cpp",
+                "${workspaceFolder}\\include\\simomett\\common.cpp",
+                "-o",
+                "${workspaceFolder}\\dist\\modbus_plant_gui.exe",
+                "${workspaceFolder}\\libmodbus.dll",
+                "-l:libwinpthread.a",
+                "-lopengl32",
+                "-lSFML"
             ],
             "options": {
                 "cwd": "C:/msys64/ucrt64/bin"

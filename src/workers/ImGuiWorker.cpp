@@ -2,17 +2,27 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "GuiWorker.h"
+#include "ImGuiWorker.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl2.h"
 #include "imgui_internal.h"
 #include "implot/implot.h"
 #include "simomett/common.h"
 
-const std::string GuiWorker::WORKER_VERSION = "GuiWorker build: 1";
+const std::string GuiWorker::WORKER_VERSION = "ImGuiWorker build: 1";
 
-GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger), refresh_rate_ms(gui_config["refresh_rate"].get<unsigned short>()), deque_max_len(gui_config["deque_max_len"].get<unsigned short>()), light_theme(gui_config["light_theme"].get<bool>())
+GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger)
 {
+    for(const char * field : {"refresh_rate", "deque_max_len"})
+    {
+        if(gui_config[field].is_null())
+            throw std::runtime_error(std::format("Missing '{}' field in config json", field));
+    }
+    
+    refresh_rate_ms = gui_config["refresh_rate"].get<unsigned short>();
+    deque_max_len = gui_config["deque_max_len"].get<unsigned short>();
+    light_theme = gui_config["light_theme"].is_boolean()? gui_config["light_theme"].get<bool>() : true;
+
     std::unordered_map<addr_t, std::string> *maps[4];
     maps[MbValueType::WORD_TYPE] = &this->words_names;
     maps[MbValueType::DWORD_TYPE] = &this->dwords_names;

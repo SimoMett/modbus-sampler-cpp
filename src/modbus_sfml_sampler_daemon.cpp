@@ -7,15 +7,11 @@
 #include <windows.h>        // SetProcessDPIAware()
 #endif
 
-#include "imgui/imgui.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_opengl2.h"
-
 #include "argparse/argparse.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
-#include "workers/ImGuiWorker.h"
+#include "workers/SFMLWorker.h"
 #include "simomett/common.h"
 #include "workers/ModbusWorker.h"
 
@@ -33,7 +29,7 @@ int main(int argc, char ** argv)
     ::SetProcessDPIAware();
 #endif
     
-    argparse::ArgumentParser parser(program_name, GuiWorker::WORKER_VERSION);
+    argparse::ArgumentParser parser(program_name, SFMLWorker::WORKER_VERSION);
     parser.add_argument("--config").default_value("modbus_sampler_daemon_config.json").help("use different configuration file");
     parser.add_argument("--log").default_value("modbus_sampler_daemon.log").help("put logs in a different file");
     parser.add_argument("tags_json").required();
@@ -79,12 +75,12 @@ int main(int argc, char ** argv)
         json tags_json = simomett::json_from_file(parser.get<std::string>("tags_json"));
 
         //Guards
-        if(config_json["imgui"].is_null())
-            throw std::runtime_error("Missing 'imgui' field in config json");
+        if(config_json["sfmlgui"].is_null())
+            throw std::runtime_error("Missing 'sfmlgui' field in config json");
 
         // workers setup
         std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
-        consumerWorkers.push_back(std::make_shared<GuiWorker>(logger, program_name, config_json["imgui"], tags_json));
+        consumerWorkers.push_back(std::make_shared<SFMLWorker>(logger, program_name, config_json["sfmlgui"], tags_json));
         
         for (auto worker : consumerWorkers)
             worker->start();
@@ -111,7 +107,6 @@ int main(int argc, char ** argv)
     }
     catch (const std::exception &e)
     {
-        std::cout << e.what() << "\n";
         logger->info(e.what());
     }
 
