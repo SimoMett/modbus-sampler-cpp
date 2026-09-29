@@ -67,9 +67,33 @@ void ModbusWorker::parse_tags(json tags)
     }
 }
 
-ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::NetSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), one_indexed(tags["one_indexed"].get<bool>()), reg_order(tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1), scantime_ms(tags["scantime_ms"].get<unsigned int>()),
-                                                                                                                                                                            port(createClientPort(Modbus::TCP, modbus_settings, true)), client(1, this->port.get())
+ModbusWorker::ModbusWorker(std::shared_ptr<spdlog::logger> logger, Modbus::NetSettings *modbus_settings, json tags, std::vector<std::shared_ptr<ConsumerWorker>> workers) : logger(logger), workers(workers), port(createClientPort(Modbus::TCP, modbus_settings, true))
 {
+    if(tags["register_order"].is_string())
+        reg_order = tags["register_order"].get<std::string>() == "R1R0" ? RegisterOrder::R1R0 : RegisterOrder::R0R1;
+    else
+    {
+        logger->warn("'register_order' key not present in tags json");
+        reg_order = RegisterOrder::R0R1;
+    }
+
+    if(tags["scantime_ms"].is_number_integer())
+        scantime_ms = tags["scantime_ms"].get<unsigned int>();
+    else
+    {
+        logger->warn("'scantime_ms' key not present in tags json");
+        scantime_ms = 500;
+    }
+
+    if(tags["one_indexed"].is_boolean())
+        one_indexed = tags["one_indexed"].get<bool>();
+    else
+    {
+        logger->warn("'one_indexed' key not present in tags json");
+        one_indexed = false;
+    }
+
+    this->client = std::make_unique<ModbusClient>(1, this->port.get());
     this->should_close = false;
 
     this->parse_tags(tags);
@@ -186,7 +210,7 @@ std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment
 {
     auto results = std::make_unique<uint16_t[]>(s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2));
 
-    Modbus::StatusCode code = this->client.readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2), results.get());
+    Modbus::StatusCode code = this->client->readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2), results.get());
     if (code != Modbus::Status_Good)
     {
         // throw the correct message
@@ -236,7 +260,7 @@ void ModbusWorker::fetch_and_push_coils(const Segment &s)
 
     std::unique_ptr<bool[]> results = std::make_unique<bool[]>(s.end - s.start + 1);
 
-    Modbus::StatusCode code = this->client.readCoilsAsBoolArray(s.start - (this->one_indexed ? 1 : 0), s.end - s.start + 1, results.get());
+    Modbus::StatusCode code = this->client->readCoilsAsBoolArray(s.start - (this->one_indexed ? 1 : 0), s.end - s.start + 1, results.get());
     if (code != Modbus::Status_Good)
     {
         // throw the correct message

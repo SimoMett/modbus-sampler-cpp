@@ -2,6 +2,7 @@
 #include <thread>
 #include <memory>
 
+#include "ProducerWorker.h"
 #include "spdlog/spdlog.h"
 #include "modbus/ModbusClient.h"
 #include "modbus/ModbusClientPort.h"
@@ -11,12 +12,6 @@
 #pragma once
 
 using json = nlohmann::json;
-
-struct Segment
-{
-    uint32_t start;
-    uint32_t end;
-};
 
 enum RegisterOrder
 {
@@ -45,13 +40,13 @@ private:
     bool should_close;
     const std::shared_ptr<spdlog::logger> logger;
     std::vector<std::shared_ptr<ConsumerWorker>> workers;
-    const bool one_indexed;
-    const RegisterOrder reg_order;
-    const unsigned int scantime_ms;
+    bool one_indexed;
+    RegisterOrder reg_order;
+    unsigned int scantime_ms;
 
     // support vars
     std::unique_ptr<ModbusClientPort> port;
-    ModbusClient client;
+    std::unique_ptr<ModbusClient> client;
 
     // Addresses segments for Modbus polling
     std::vector<Segment> bits;
