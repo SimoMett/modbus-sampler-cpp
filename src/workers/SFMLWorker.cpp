@@ -17,6 +17,7 @@ SFMLWorker::SFMLWorker(std::shared_ptr<spdlog::logger> logger, std::string windo
     
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(gui_config["background"].get<std::string>().c_str());
+    logger->info("Patching SVG");
     patchDocument(doc);
     std::ostringstream prePatchedDoc;
     doc.save(prePatchedDoc);
@@ -99,6 +100,14 @@ void SFMLWorker::patchDocument(pugi::xml_document &doc)
             grayNodes.push(supportedNode); //Parent of 'switch' node doesn't know of its presence
             doc.remove_child(node);
         }
+
+        //Replace every 'data-cell-id' attribute with 'id'
+        if(!node.attribute("data-cell-id").empty())
+        {
+            std::string node_id = node.attribute("data-cell-id").as_string();
+            node.remove_attribute(node.attribute("data-cell-id"));
+            node.append_attribute("id").set_value(node_id);
+        }
         
         if(!node.children().empty())
         {
@@ -155,12 +164,16 @@ void SFMLWorker::run()
 
 inline void SFMLWorker::setItemColor(std::unique_ptr<lunasvg::Document> & doc, const std::string & item_name, const std::string & color)
 {
-    doc->getElementById(std::string("cell-")+item_name).children()[0].toElement().children()[0].toElement().setAttribute("fill", color);
+    for(auto ch : doc->getElementById(item_name).toElement().children())
+    {
+        if(ch.toElement().hasAttribute("fill") && ch.toElement().getAttribute("fill") != "none")
+            ch.toElement().setAttribute("fill", color);
+    }
 }
 
 inline void SFMLWorker::setFieldText(std::unique_ptr<lunasvg::Document> & doc, const std::string & field, const std::string & text)
 {
-    doc->getElementById(std::string("cell-")+field).children()[1].toElement().children()[0].toElement().children()[0].toElement().children()[0].toTextNode().setData(text);
+    doc->getElementById(field).children()[1].toElement().children()[0].toElement().children()[0].toElement().children()[0].toTextNode().setData(text);
 }
 
 void SFMLWorker::dump_samples(){}
