@@ -124,20 +124,6 @@ void ImGuiWorker::run()
         std::chrono::system_clock::time_point dump_timer = std::chrono::system_clock::now();
         while (!should_close)
         {
-            // Poll and handle events (inputs, window resize, etc.)
-            // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-            // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-            // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-            // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-            SDL_Event event;
-            while (SDL_PollEvent(&event))
-            {
-                ImGui_ImplSDL2_ProcessEvent(&event);
-                if (event.type == SDL_QUIT)
-                    should_close = true;
-                if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
-                    should_close = true;
-            }
             if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
             {
                 SDL_Delay(100);
@@ -176,14 +162,17 @@ void ImGuiWorker::run()
 
                         ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit);
 
-                        ImPlot::PlotLine<double>(tag_name, data_x.data(), data_y.data(), data_x.size());
+                        if(data_x.size() == data_y.size())
+                            ImPlot::PlotLine<double>(tag_name, data_x.data(), data_y.data(), data_x.size());
+                        else
+                            logger->error(std::format("Tag '{}' data_x.size() and data_y.size() are not equal", kv.first));
                         ImPlot::EndPlot();
                     }
                 }
             }
             ImGui::End();
 
-            // Rendering
+            // Rendering mumbo-jumbo
             std::chrono::system_clock::time_point _start = std::chrono::system_clock::now();
             ImGui::Render();
             glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -194,9 +183,24 @@ void ImGuiWorker::run()
             SDL_GL_SwapWindow(window);
 
             std::chrono::nanoseconds delta = (std::chrono::system_clock::now() - _start);
-            std::chrono::milliseconds maxDelta = std::chrono::milliseconds(30);
+            static const std::chrono::milliseconds maxDelta = std::chrono::milliseconds(30);
             if (delta < maxDelta)
                 std::this_thread::sleep_for(maxDelta - delta);
+
+            // Poll and handle events (inputs, window resize, etc.)
+            // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+            // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
+            // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
+            // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
+            {
+                ImGui_ImplSDL2_ProcessEvent(&event);
+                if (event.type == SDL_QUIT)
+                    should_close = true;
+                if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+                    should_close = true;
+            }
         }
 
         // Cleanup

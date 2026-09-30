@@ -61,6 +61,9 @@ void SamplesRingQueue::refresh()
         case MbValueType::REAL_TYPE:
             data_y.push_back(sample.val.real);
             break;
+        case MbValueType::COIL_TYPE:
+            data_y.push_back((float)(sample.val.word));
+            break;
         }
 
         auto tt = time + std::chrono::hours(2);
