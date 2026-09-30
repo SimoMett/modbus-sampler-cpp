@@ -33,11 +33,12 @@ set(IMGUI_SOURCE_CPP
 )
 
 add_executable(modbus_csv_sampler_daemon
-    src/modbus_csv_sampler_daemon.cpp
+    src/modbus_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
     src/workers/CsvWorker.cpp
 )
 target_compile_features(modbus_csv_sampler_daemon PRIVATE cxx_std_20)
+target_compile_definitions(modbus_csv_sampler_daemon PRIVATE CSV_WORKER_ENABLED)
 target_link_options(modbus_csv_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB} "libwinpthread.a")
@@ -46,13 +47,14 @@ else()
 endif()
 
 add_executable(modbus_graph_plotter
-    src/modbus_graph_plotter.cpp
+    src/modbus_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
     src/workers/ImGuiWorker.cpp
     ${IMGUI_SOURCE_CPP}
     src/workers/SamplesRingQueue.cpp
 )
 target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
+target_compile_definitions(modbus_graph_plotter PRIVATE IMGUI_WORKER_ENABLED)
 target_link_options(modbus_graph_plotter PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
@@ -61,11 +63,12 @@ else()
 endif()
 
 add_executable(modbus_pg_sampler_daemon
-    src/modbus_pg_sampler_daemon.cpp
+    src/modbus_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
     src/workers/PostgreWorker.cpp
 )
 target_compile_features(modbus_pg_sampler_daemon PRIVATE cxx_std_20)
+target_compile_definitions(modbus_pg_sampler_daemon PRIVATE PG_WORKER_ENABLED)
 target_link_options(modbus_pg_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx "libwinpthread.a")
@@ -95,11 +98,12 @@ FetchContent_Declare(pugixml
 FetchContent_MakeAvailable(SFML lunasvg pugixml)
 
 add_executable(modbus_sfml_sampler_daemon
-    src/modbus_sfml_sampler_daemon.cpp
+    src/modbus_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
     src/workers/SFMLWorker.cpp
 )
 target_compile_features(modbus_sfml_sampler_daemon PRIVATE cxx_std_20)
+target_compile_definitions(modbus_sfml_sampler_daemon PRIVATE SFML_WORKER_ENABLED)
 target_link_options(modbus_sfml_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_sfml_sampler_daemon ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics "libwinpthread.a")
