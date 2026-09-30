@@ -9,9 +9,9 @@
 #include "implot/implot.h"
 #include "simomett/common.h"
 
-const std::string GuiWorker::WORKER_VERSION = "ImGuiWorker build: 1";
+const std::string ImGuiWorker::WORKER_VERSION = "ImGuiWorker build: 1";
 
-GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : logger(logger)
+ImGuiWorker::ImGuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : logger(logger)
 {
     for(const char * field : {"refresh_rate", "deque_max_len"})
     {
@@ -50,21 +50,21 @@ GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_
     }
 }
 
-GuiWorker::~GuiWorker()
+ImGuiWorker::~ImGuiWorker()
 {
 }
 
-void GuiWorker::start()
+void ImGuiWorker::start()
 {
-    run_thread = std::make_unique<std::thread>(&GuiWorker::run, this);
+    run_thread = std::make_unique<std::thread>(&ImGuiWorker::run, this);
 }
 
-void GuiWorker::stop()
+void ImGuiWorker::stop()
 {
     this->should_close = true;
 }
 
-void GuiWorker::run()
+void ImGuiWorker::run()
 {
     this->logger->info("Initializing Gui worker..");
     this->is_running = true;
@@ -219,17 +219,17 @@ void GuiWorker::run()
     this->is_running = false;
 }
 
-void GuiWorker::join()
+void ImGuiWorker::join()
 {
     this->run_thread->join();
 }
 
-bool GuiWorker::running()
+bool ImGuiWorker::running()
 {
     return this->is_running;
 }
 
-void GuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point time)
+void ImGuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -240,7 +240,7 @@ void GuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
         samples_queues.at(tag_name).append(Sample{v, time});
     }
 }
-void GuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point time)
+void ImGuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -250,7 +250,7 @@ void GuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
         samples_queues.at(tag_name).append(Sample{v, time});
     }
 }
-void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point time)
+void ImGuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -261,7 +261,7 @@ void GuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
     }
 }
 
-void GuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point time)
+void ImGuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -272,11 +272,11 @@ void GuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono:
     }
 }
 
-void GuiWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
+void ImGuiWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
 {
 }
 
-void GuiWorker::dump_samples()
+void ImGuiWorker::dump_samples()
 {
     for (auto &kv : samples_queues)
     {

@@ -8,13 +8,13 @@
 
 using nlohmann::json;
 
-class GuiWorker: public ConsumerWorker
+class ImGuiWorker: public ConsumerWorker
 {
 public:
     static const std::string WORKER_VERSION;
 
-    GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags);
-    ~GuiWorker() override;
+    ImGuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags);
+    ~ImGuiWorker() override;
 
     void start() override;
     void join() override;

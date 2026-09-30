@@ -109,7 +109,7 @@ int main(int argc, char ** argv)
         #ifdef IMGUI_WORKER_ENABLED
         if(config_json["imgui"].is_null())
             throw std::runtime_error("Missing 'imgui' field in config json");
-        consumerWorkers.push_back(std::make_shared<GuiWorker>(logger, program_name, config_json["imgui"], tags_json));
+        consumerWorkers.push_back(std::make_shared<ImGuiWorker>(logger, program_name, config_json["imgui"], tags_json));
         #endif
 
         #ifdef SFML_WORKER_ENABLED
