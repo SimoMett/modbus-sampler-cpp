@@ -28,9 +28,6 @@ public:
 
 private:
     const std::string window_name;
-    std::unique_ptr<std::thread> run_thread;
-    bool should_close;
-    bool is_running;
     const std::shared_ptr<spdlog::logger> logger;
     std::unordered_map<addr_t, std::string> words_names;
     std::unordered_map<addr_t, std::string> floats_names;

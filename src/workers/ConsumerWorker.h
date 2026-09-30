@@ -1,5 +1,6 @@
 #include <vector>
 #include <chrono>
+#include <thread>
 
 #pragma once
 
@@ -37,6 +38,10 @@ public:
     virtual void push_coils(std::vector<AddressValue<bool>>, std::chrono::system_clock::time_point)=0;
     virtual void push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)=0;
 protected:
+    bool should_close;
+    bool is_running;
+    std::unique_ptr<std::thread> run_thread;
+
     virtual void dump_samples() = 0;
     static std::string format_name(const std::string & name);
 };

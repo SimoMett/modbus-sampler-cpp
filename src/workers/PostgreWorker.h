@@ -38,9 +38,6 @@ public:
 private:
     pqxx::connection * pgconn;
 
-    std::unique_ptr<std::thread> run_thread;
-    bool should_close;
-    bool is_running;
     const std::shared_ptr<spdlog::logger> logger;
     const std::chrono::milliseconds dump_time_ms;
     std::unordered_map<addr_t, std::string> words_names;

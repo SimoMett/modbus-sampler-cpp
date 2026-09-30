@@ -11,7 +11,7 @@
 
 const std::string GuiWorker::WORKER_VERSION = "ImGuiWorker build: 1";
 
-GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : should_close(false), is_running(false), logger(logger)
+GuiWorker::GuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : logger(logger)
 {
     for(const char * field : {"refresh_rate", "deque_max_len"})
     {

@@ -30,9 +30,6 @@ public:
     void push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point) override;
 
 private:
-    std::unique_ptr<std::thread> run_thread;
-    bool should_close;
-    bool is_running;
     const std::shared_ptr<spdlog::logger> logger;
     const std::filesystem::path output_dir;
     const std::chrono::milliseconds dump_time_ms;
