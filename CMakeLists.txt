@@ -97,16 +97,16 @@ FetchContent_Declare(pugixml
 
 FetchContent_MakeAvailable(SFML lunasvg pugixml)
 
-add_executable(modbus_sfml_sampler_daemon
+add_executable(modbus_plant_ui
     src/modbus_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
     src/workers/SFMLWorker.cpp
 )
-target_compile_features(modbus_sfml_sampler_daemon PRIVATE cxx_std_20)
-target_compile_definitions(modbus_sfml_sampler_daemon PRIVATE SFML_WORKER_ENABLED)
-target_link_options(modbus_sfml_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
+target_compile_features(modbus_plant_ui PRIVATE cxx_std_20)
+target_compile_definitions(modbus_plant_ui PRIVATE SFML_WORKER_ENABLED)
+target_link_options(modbus_plant_ui PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
-    target_link_libraries(modbus_sfml_sampler_daemon ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics "libwinpthread.a")
+    target_link_libraries(modbus_plant_ui ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics "libwinpthread.a")
 else()
-    target_link_libraries(modbus_sfml_sampler_daemon ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics)
+    target_link_libraries(modbus_plant_ui ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics)
 endif()
