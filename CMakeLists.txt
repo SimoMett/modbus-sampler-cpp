@@ -15,12 +15,6 @@ FetchContent_Declare(modbuslib
     GIT_TAG v0.5.0
 )
 
-if(WIN32)
-set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.dll")
-else()
-set(MODBUS_LIB modbus)
-endif()
-
 set(COMMON_SOURCE_CPP
     src/workers/ConsumerWorker.cpp
     src/workers/ModbusWorker.cpp
@@ -47,9 +41,9 @@ target_compile_features(modbus_csv_sampler_daemon PRIVATE cxx_std_20)
 target_compile_definitions(modbus_csv_sampler_daemon PRIVATE CSV_WORKER_ENABLED)
 target_link_options(modbus_csv_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
-    target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB} "libwinpthread.a")
+    target_link_libraries(modbus_csv_sampler_daemon modbus "libwinpthread.a")
 else()
-    target_link_libraries(modbus_csv_sampler_daemon ${MODBUS_LIB})
+    target_link_libraries(modbus_csv_sampler_daemon modbus)
 endif()
 
 add_executable(modbus_graph_plotter
@@ -63,9 +57,9 @@ target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
 target_compile_definitions(modbus_graph_plotter PRIVATE IMGUI_WORKER_ENABLED)
 target_link_options(modbus_graph_plotter PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
-    target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
+    target_link_libraries(modbus_graph_plotter modbus opengl32 ${SDL2_LIBRARIES} "libwinpthread.a")
 else()
-    target_link_libraries(modbus_graph_plotter ${MODBUS_LIB} GL ${SDL2_LIBRARIES})
+    target_link_libraries(modbus_graph_plotter modbus GL ${SDL2_LIBRARIES})
 endif()
 
 add_executable(modbus_pg_sampler_daemon
@@ -77,9 +71,9 @@ target_compile_features(modbus_pg_sampler_daemon PRIVATE cxx_std_20)
 target_compile_definitions(modbus_pg_sampler_daemon PRIVATE PG_WORKER_ENABLED)
 target_link_options(modbus_pg_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
-    target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx "libwinpthread.a")
+    target_link_libraries(modbus_pg_sampler_daemon modbus pqxx "libwinpthread.a")
 else()
-    target_link_libraries(modbus_pg_sampler_daemon ${MODBUS_LIB} pqxx)
+    target_link_libraries(modbus_pg_sampler_daemon modbus pqxx)
 endif()
 
 ####
@@ -111,7 +105,7 @@ target_compile_features(modbus_plant_ui PRIVATE cxx_std_20)
 target_compile_definitions(modbus_plant_ui PRIVATE SFML_WORKER_ENABLED)
 target_link_options(modbus_plant_ui PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
-    target_link_libraries(modbus_plant_ui ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics "libwinpthread.a")
+    target_link_libraries(modbus_plant_ui modbus pugixml plutovg lunasvg SFML::Graphics "libwinpthread.a")
 else()
-    target_link_libraries(modbus_plant_ui ${MODBUS_LIB} pugixml plutovg lunasvg SFML::Graphics)
+    target_link_libraries(modbus_plant_ui modbus pugixml plutovg lunasvg SFML::Graphics)
 endif()
