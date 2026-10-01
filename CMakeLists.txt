@@ -9,10 +9,16 @@ find_package(SDL2 REQUIRED)
 
 include_directories(src/ include/ include/imgui/)
 
+include(FetchContent)
+FetchContent_Declare(modbuslib
+    GIT_REPOSITORY https://github.com/serhmarch/ModbusLib.git
+    GIT_TAG v0.5.0
+)
+
 if(WIN32)
 set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libmodbus.dll")
 else()
-set(MODBUS_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/libmodbus.so")
+set(MODBUS_LIB modbus)
 endif()
 
 set(COMMON_SOURCE_CPP
@@ -77,7 +83,6 @@ else()
 endif()
 
 ####
-include(FetchContent)
 FetchContent_Declare(SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
     GIT_TAG 3.1.0
@@ -95,7 +100,7 @@ FetchContent_Declare(pugixml
     GIT_TAG v1.16
 )
 
-FetchContent_MakeAvailable(SFML lunasvg pugixml)
+FetchContent_MakeAvailable(modbuslib SFML lunasvg pugixml)
 
 add_executable(modbus_plant_ui
     src/modbus_sampler_daemon.cpp
