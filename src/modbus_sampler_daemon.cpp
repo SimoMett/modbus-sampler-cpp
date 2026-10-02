@@ -20,6 +20,9 @@
 #ifdef SFML_WORKER_ENABLED
 #include "workers/SFMLWorker.h"
 #endif
+#ifdef ALARM_LOGGER_ENABLED
+#include "workers/AlarmLogger.h"
+#endif
 
 const std::string program_name = "ModbusSamplerDaemon";
 
@@ -116,6 +119,12 @@ int main(int argc, char ** argv)
         if(config_json["sfmlgui"].is_null())
             throw std::runtime_error("Missing 'sfmlgui' field in config json");
         consumerWorkers.push_back(std::make_shared<SFMLWorker>(logger, program_name, config_json["sfmlgui"], tags_json));
+        #endif
+
+        #ifdef ALARM_LOGGER_ENABLED
+        if(config_json["alarmlogger"].is_null())
+            throw std::runtime_error("Missing 'alarmlogger' field in config json");
+        consumerWorkers.push_back(std::make_shared<AlarmLogger>(logger, config_json["alarmlogger"], tags_json));
         #endif
 
         // connections workers setup

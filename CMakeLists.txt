@@ -16,6 +16,10 @@ find_package(SDL2 REQUIRED)
 
 include_directories(src/ include/ include/imgui/)
 
+if(WIN32)
+    link_libraries(winpthread)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(modbuslib
     GIT_REPOSITORY https://github.com/serhmarch/ModbusLib.git
@@ -47,11 +51,7 @@ add_executable(modbus_csv_sampler_daemon
 target_compile_features(modbus_csv_sampler_daemon PRIVATE cxx_std_20)
 target_compile_definitions(modbus_csv_sampler_daemon PRIVATE CSV_WORKER_ENABLED)
 target_link_options(modbus_csv_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
-if(WIN32)
-    target_link_libraries(modbus_csv_sampler_daemon modbus winpthread)
-else()
-    target_link_libraries(modbus_csv_sampler_daemon modbus)
-endif()
+target_link_libraries(modbus_csv_sampler_daemon modbus)
 
 add_executable(modbus_graph_plotter
     src/modbus_sampler_daemon.cpp
@@ -64,7 +64,7 @@ target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
 target_compile_definitions(modbus_graph_plotter PRIVATE IMGUI_WORKER_ENABLED)
 target_link_options(modbus_graph_plotter PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
-    target_link_libraries(modbus_graph_plotter modbus opengl32 ${SDL2_LIBRARIES} winpthread)
+    target_link_libraries(modbus_graph_plotter modbus opengl32 ${SDL2_LIBRARIES})
 else()
     target_link_libraries(modbus_graph_plotter modbus GL ${SDL2_LIBRARIES})
 endif()
@@ -77,11 +77,7 @@ add_executable(modbus_pg_sampler_daemon
 target_compile_features(modbus_pg_sampler_daemon PRIVATE cxx_std_20)
 target_compile_definitions(modbus_pg_sampler_daemon PRIVATE PG_WORKER_ENABLED)
 target_link_options(modbus_pg_sampler_daemon PRIVATE -static-libgcc -static-libstdc++)
-if(WIN32)
-    target_link_libraries(modbus_pg_sampler_daemon modbus pqxx winpthread)
-else()
-    target_link_libraries(modbus_pg_sampler_daemon modbus pqxx)
-endif()
+target_link_libraries(modbus_pg_sampler_daemon modbus pqxx)
 
 ####
 FetchContent_Declare(SFML
@@ -111,8 +107,14 @@ add_executable(modbus_plant_ui
 target_compile_features(modbus_plant_ui PRIVATE cxx_std_20)
 target_compile_definitions(modbus_plant_ui PRIVATE SFML_WORKER_ENABLED)
 target_link_options(modbus_plant_ui PRIVATE -static-libgcc -static-libstdc++)
-if(WIN32)
-    target_link_libraries(modbus_plant_ui modbus pugixml plutovg lunasvg SFML::Graphics winpthread)
-else()
-    target_link_libraries(modbus_plant_ui modbus pugixml plutovg lunasvg SFML::Graphics)
-endif()
+target_link_libraries(modbus_plant_ui modbus pugixml plutovg lunasvg SFML::Graphics)
+
+add_executable(modbus_alarm_logger
+    src/modbus_sampler_daemon.cpp
+    ${COMMON_SOURCE_CPP}
+    src/workers/AlarmLogger.cpp
+)
+target_compile_features(modbus_alarm_logger PRIVATE cxx_std_20)
+target_compile_definitions(modbus_alarm_logger PRIVATE ALARM_LOGGER_ENABLED)
+target_link_options(modbus_alarm_logger PRIVATE -static-libgcc -static-libstdc++)
+target_link_libraries(modbus_alarm_logger modbus)
