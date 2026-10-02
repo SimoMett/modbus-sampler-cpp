@@ -47,11 +47,11 @@ void ModbusWorker::parse_tags(json tags)
         {
             uint32_t addr = w["address"];
             uint16_t bitmask = 0;
-            
+
             for(int i = 0; i < 16; i++)
             {
                 if(w["tags"][i].is_null())
-                    break;
+                    continue;
 
                 if(!w["tags"][i].get<std::string>().empty())
                     bitmask |= (1 << i);
@@ -308,9 +308,12 @@ void ModbusWorker::fetch_and_push_bits(const Segment &s)
     for (auto us : unprocessed_samples)
     {
         uint32_t addr = us.address;
-        uint8_t bit = bit_masks[addr];
-        bool val = (us.val & (1 << bit)) != 0;
-        samples.push_back(BitAddressValue{addr, bit, val});
+        uint16_t bitmsk = bit_masks[addr];
+        for(uint16_t bit = 0; bit < 16; bit++)
+        {
+            bool val = ((us.val & bitmsk) & (1 << bit)) != 0;
+            samples.push_back(BitAddressValue{addr, bit, val});
+        }
     }
 
     for (const auto &worker : this->workers)
