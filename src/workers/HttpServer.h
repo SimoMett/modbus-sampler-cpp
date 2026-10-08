@@ -12,6 +12,7 @@ public:
 
     HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_conf, json tags);
     ~HttpServer(){};
+
     void start();
     void join();
     void stop();
@@ -34,4 +35,8 @@ protected:
 private:
     unsigned short http_port;
     httplib::Server http_server;
+
+    void http_return_status(const httplib::Request &, httplib::Response &res);
+    void http_handle_tags_request(const httplib::Request &, httplib::Response &res);
+    void http_handle_addr_request(const httplib::Request &, httplib::Response &res);
 };
