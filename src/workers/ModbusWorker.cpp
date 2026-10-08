@@ -296,9 +296,15 @@ void ModbusWorker::fetch_and_push_coils(const Segment &s)
     }
 }
 
-void ModbusWorker::fetch_and_push_bits(const Segment &s)
+void ModbusWorker::fetch_and_push_bits(const Segment &s) // TODO
 {
-    logger->warn("'Bits' not implemented yet"); // TODO
+    static bool warn_issued = false;
+    if(!warn_issued)
+    {
+        logger->warn("'fetch_and_push_bits' not fully implemented yet"); 
+        warn_issued = true;
+    }
+
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
     std::vector<AddressValue<uint16_t>> unprocessed_samples = fetch_holding_registers<uint16_t>(s);
