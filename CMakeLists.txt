@@ -118,3 +118,17 @@ target_compile_features(modbus_alarm_logger PRIVATE cxx_std_20)
 target_compile_definitions(modbus_alarm_logger PRIVATE ALARM_LOGGER_ENABLED)
 target_link_options(modbus_alarm_logger PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(modbus_alarm_logger modbus)
+
+add_executable(modbus_http_server
+    src/modbus_sampler_daemon.cpp
+    ${COMMON_SOURCE_CPP}
+    src/workers/HttpServer.cpp
+)
+target_compile_features(modbus_http_server PRIVATE cxx_std_20)
+target_compile_definitions(modbus_http_server PRIVATE HTTP_SERVER_ENABLED)
+target_link_options(modbus_http_server PRIVATE -static-libgcc -static-libstdc++)
+if(WIN32)
+    target_link_libraries(modbus_http_server modbus ws2_32)
+else()
+    target_link_libraries(modbus_http_server modbus)
+endif()

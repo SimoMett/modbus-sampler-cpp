@@ -23,6 +23,9 @@
 #ifdef ALARM_LOGGER_ENABLED
 #include "workers/AlarmLogger.h"
 #endif
+#ifdef HTTP_SERVER_ENABLED
+#include "workers/HttpServer.h"
+#endif
 
 const std::string program_name = "ModbusSamplerDaemon";
 
@@ -125,6 +128,12 @@ int main(int argc, char ** argv)
         if(config_json["alarmlogger"].is_null())
             throw std::runtime_error("Missing 'alarmlogger' field in config json");
         consumerWorkers.push_back(std::make_shared<AlarmLogger>(logger, config_json["alarmlogger"], tags_json));
+        #endif
+
+        #ifdef HTTP_SERVER_ENABLED
+        if(config_json["httpserver"].is_null())
+            throw std::runtime_error("Missing 'httpserver' field in config json");
+        consumerWorkers.push_back(std::make_shared<HttpServer>(logger, config_json["httpserver"], tags_json));
         #endif
 
         // connections workers setup
