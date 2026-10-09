@@ -208,9 +208,10 @@ void ModbusWorker::fetch_and_push_dwords(const Segment &s)
 template <RegisterValue T>
 std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment &s)
 {
-    auto results = std::make_unique<uint16_t[]>(s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2));
+    auto size = s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2);
+    auto results = std::make_unique<uint16_t[]>(size);
 
-    Modbus::StatusCode code = this->client->readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), s.end - s.start + (std::is_same_v<T, uint16_t> ? 1 : 2), results.get());
+    Modbus::StatusCode code = this->client->readHoldingRegisters(s.start - (this->one_indexed ? 400001 : 400000), size, results.get());
     if (code != Modbus::Status_Good)
     {
         // throw the correct message
@@ -231,7 +232,7 @@ std::vector<AddressValue<T>> ModbusWorker::fetch_holding_registers(const Segment
 
     std::vector<AddressValue<T>> samples;
 
-    for (uint32_t i = s.start; i < s.end; i++)
+    for (uint32_t i = s.start; i < s.end+1; i++)
     {
         if (std::is_same_v<T, uint16_t>)
         {
