@@ -278,6 +278,13 @@ void ImGuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chron
 
 void ImGuiWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
 {
+    //TODO
+    static bool warn_issued = false;
+    if(!warn_issued)
+    {
+        logger->warn("'ImGuiWorker::push_bits' not implemented yet"); 
+        warn_issued = true;
+    }
 }
 
 void ImGuiWorker::dump_samples()

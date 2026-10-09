@@ -100,6 +100,13 @@ void PostgreWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chr
 
 void PostgreWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
 {
+    //TODO
+    static bool warn_issued = false;
+    if(!warn_issued)
+    {
+        logger->warn("'PostgreWorker::push_bits' not implemented yet"); 
+        warn_issued = true;
+    }
 }
 
 void PostgreWorker::dump_samples()
