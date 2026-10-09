@@ -5,12 +5,18 @@ const std::string HttpServer::WORKER_VERSION = "Http server build: 1";
 
 using simomett::MbValueType;
 
-HttpServer::HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_conf, json tags): logger(logger), use_tls(false)
+HttpServer::HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_conf, json tags): logger(logger)
 {
     for(const char * field : {"host", "port", "useTls"})
     {
         if(http_server_conf[field].is_null())
             throw std::runtime_error(std::format("Missing '{}' field in httpserver config", field));
+    }
+    use_tls = http_server_conf["useTls"].get<bool>();
+    if(use_tls)
+    {
+        logger->warn("TLS not yet supported by this Http server");
+        use_tls = false;
     }
     http_host = http_server_conf["host"].get<std::string>();
     http_port = http_server_conf["port"].get<unsigned short>();
@@ -51,6 +57,23 @@ HttpServer::HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_
         this->dwords_values.insert(std::pair<addr_t, uint32_t>(e.second, 0));
     for(auto e : this->coils_names)
         this->coils_values.insert(std::pair<addr_t, bool>(e.second, 0));
+    
+    //Bits names
+    if (!tags["bits"].is_null())
+    {
+        for(auto j : tags["bits"])
+        {
+            for(uint8_t i=0; i<16; i++)
+            {
+                BitAddress bit_addr {j["address"].get<addr_t>(), i};
+                if(!j["tags"][i].is_null() && j["tags"][i] != "")
+                {
+                    std::string formatted_tag_name = ConsumerWorker::format_name(j["tags"][i].get<std::string>());
+                    bits_names.insert( {formatted_tag_name, bit_addr} );
+                }
+            }
+        }
+    }
 }
 
 void HttpServer::start()
@@ -99,12 +122,10 @@ void HttpServer::push_coils(std::vector<AddressValue<bool>> samples, std::chrono
 
 void HttpServer::push_bits(std::vector<BitAddressValue> samples, std::chrono::system_clock::time_point)
 {
-    //TODO
-    static bool warn_issued = false;
-    if(!warn_issued)
+    for(auto &sample : samples)
     {
-        logger->warn("'HttpServer::push_bits' not implemented yet"); 
-        warn_issued = true;
+        this->bits_values[sample.address] &= 0xffff - (1 << sample.bit);
+        this->bits_values[sample.address] |= (sample.val << sample.bit);
     }
 }
 
@@ -128,7 +149,10 @@ void HttpServer::run()
 
 void HttpServer::http_return_status(const httplib::Request &, httplib::Response &res)
 {
-    res.set_content("Healthy!", "text/plain");
+    static const json response = {
+        {"status", "healthy"}
+    };
+    res.set_content(response.dump(), "application/json");
 }
 
 void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::Response &res)
@@ -179,6 +203,16 @@ void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::
         response = {
             {"tagname", tag_name},
             {"value", this->coils_values[addr]}
+        };
+        diag_tag_name_counts++;
+    }
+
+    if(this->bits_names.contains(tag_name))
+    {
+        BitAddress addr = this->bits_names[tag_name];
+        response = {
+            {"tagname", tag_name},
+            {"value", (int)((this->bits_values[addr.address] & (1 << addr.bit)) != 0)}
         };
         diag_tag_name_counts++;
     }

@@ -50,6 +50,9 @@ private:
     std::unordered_map<std::string, addr_t> coils_names;
     std::map<addr_t, bool> coils_values;
 
+    std::unordered_map<std::string, BitAddress> bits_names;
+    std::map<addr_t, uint16_t> bits_values;
+
     void http_return_status(const httplib::Request &, httplib::Response &res);
     void http_handle_tags_request(const httplib::Request &, httplib::Response &res);
 };

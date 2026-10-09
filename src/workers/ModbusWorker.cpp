@@ -302,7 +302,7 @@ void ModbusWorker::fetch_and_push_bits(const Segment &s) // TODO
     static bool warn_issued = false;
     if(!warn_issued)
     {
-        logger->warn("'fetch_and_push_bits' not fully implemented yet"); 
+        logger->warn("'ModbusWorker::fetch_and_push_bits' not fully implemented yet");
         warn_issued = true;
     }
 

@@ -13,6 +13,12 @@ struct AddressValue
     T val;
 };
 
+struct BitAddress
+{
+    addr_t address;
+    uint8_t bit;
+};
+
 struct BitAddressValue
 {
     addr_t address;
