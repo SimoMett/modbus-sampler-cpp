@@ -2,16 +2,16 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "ImGuiWorker.h"
+#include "ImGuiPlotter.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl2.h"
 #include "imgui_internal.h"
 #include "implot/implot.h"
 #include "simomett/common.h"
 
-const std::string ImGuiWorker::WORKER_VERSION = "ImGuiWorker build: 1";
+const std::string ImGuiPlotter::WORKER_VERSION = "ImGuiPlotter build: 1";
 
-ImGuiWorker::ImGuiWorker(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : logger(logger)
+ImGuiPlotter::ImGuiPlotter(std::shared_ptr<spdlog::logger> logger, std::string window_name, json gui_config, json tags) : logger(logger)
 {
     for(const char * field : {"refresh_rate", "deque_max_len"})
     {
@@ -50,21 +50,17 @@ ImGuiWorker::ImGuiWorker(std::shared_ptr<spdlog::logger> logger, std::string win
     }
 }
 
-ImGuiWorker::~ImGuiWorker()
+void ImGuiPlotter::start()
 {
+    run_thread = std::make_unique<std::thread>(&ImGuiPlotter::run, this);
 }
 
-void ImGuiWorker::start()
-{
-    run_thread = std::make_unique<std::thread>(&ImGuiWorker::run, this);
-}
-
-void ImGuiWorker::stop()
+void ImGuiPlotter::stop()
 {
     this->should_close = true;
 }
 
-void ImGuiWorker::run()
+void ImGuiPlotter::run()
 {
     this->logger->info("Initializing Gui worker..");
     this->is_running = true;
@@ -223,17 +219,17 @@ void ImGuiWorker::run()
     this->is_running = false;
 }
 
-void ImGuiWorker::join()
+void ImGuiPlotter::join()
 {
     this->run_thread->join();
 }
 
-bool ImGuiWorker::running()
+bool ImGuiPlotter::running()
 {
     return this->is_running;
 }
 
-void ImGuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point time)
+void ImGuiPlotter::push_words(std::vector<AddressValue<uint16_t>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -244,7 +240,7 @@ void ImGuiWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::c
         samples_queues.at(tag_name).append(Sample{v, time});
     }
 }
-void ImGuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point time)
+void ImGuiPlotter::push_floats(std::vector<AddressValue<float>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -254,7 +250,7 @@ void ImGuiWorker::push_floats(std::vector<AddressValue<float>> samples, std::chr
         samples_queues.at(tag_name).append(Sample{v, time});
     }
 }
-void ImGuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point time)
+void ImGuiPlotter::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -265,7 +261,7 @@ void ImGuiWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::
     }
 }
 
-void ImGuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point time)
+void ImGuiPlotter::push_coils(std::vector<AddressValue<bool>> samples, std::chrono::system_clock::time_point time)
 {
     for (const auto &sample : samples)
     {
@@ -276,18 +272,18 @@ void ImGuiWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chron
     }
 }
 
-void ImGuiWorker::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
+void ImGuiPlotter::push_bits(std::vector<BitAddressValue>, std::chrono::system_clock::time_point)
 {
     //TODO
     static bool warn_issued = false;
     if(!warn_issued)
     {
-        logger->warn("'ImGuiWorker::push_bits' not implemented yet"); 
+        logger->warn("'ImGuiPlotter::push_bits' not implemented yet"); 
         warn_issued = true;
     }
 }
 
-void ImGuiWorker::dump_samples()
+void ImGuiPlotter::dump_samples()
 {
     for (auto &kv : samples_queues)
     {

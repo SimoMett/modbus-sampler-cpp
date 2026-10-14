@@ -14,8 +14,8 @@
 #ifdef PG_WORKER_ENABLED
 #include "workers/PostgreWorker.h"
 #endif
-#ifdef IMGUI_WORKER_ENABLED
-#include "workers/ImGuiWorker.h"
+#ifdef IMGUI_PLOTTER_ENABLED
+#include "workers/ImGuiPlotter.h"
 #endif
 #ifdef SFML_WORKER_ENABLED
 #include "workers/SFMLWorker.h"
@@ -112,10 +112,10 @@ int main(int argc, char ** argv)
         consumerWorkers.push_back(std::make_shared<PostgreWorker>(logger, pg_config, config_json["postgres"]["storing_interval"].get<float>(), tags_json));
         #endif
 
-        #ifdef IMGUI_WORKER_ENABLED
+        #ifdef IMGUI_PLOTTER_ENABLED
         if(config_json["imgui"].is_null())
             throw std::runtime_error("Missing 'imgui' field in config json");
-        consumerWorkers.push_back(std::make_shared<ImGuiWorker>(logger, program_name, config_json["imgui"], tags_json));
+        consumerWorkers.push_back(std::make_shared<ImGuiPlotter>(logger, program_name, config_json["imgui"], tags_json));
         #endif
 
         #ifdef SFML_WORKER_ENABLED

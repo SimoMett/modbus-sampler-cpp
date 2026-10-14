@@ -56,12 +56,12 @@ target_link_libraries(modbus_csv_sampler_daemon modbus)
 add_executable(modbus_graph_plotter
     src/modbus_sampler_daemon.cpp
     ${COMMON_SOURCE_CPP}
-    src/workers/ImGuiWorker.cpp
+    src/workers/ImGuiPlotter.cpp
     ${IMGUI_SOURCE_CPP}
     src/workers/SamplesRingQueue.cpp
 )
 target_compile_features(modbus_graph_plotter PRIVATE cxx_std_20)
-target_compile_definitions(modbus_graph_plotter PRIVATE IMGUI_WORKER_ENABLED)
+target_compile_definitions(modbus_graph_plotter PRIVATE IMGUI_PLOTTER_ENABLED)
 target_link_options(modbus_graph_plotter PRIVATE -static-libgcc -static-libstdc++)
 if(WIN32)
     target_link_libraries(modbus_graph_plotter modbus opengl32 ${SDL2_LIBRARIES})
