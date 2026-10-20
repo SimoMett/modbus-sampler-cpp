@@ -1,6 +1,7 @@
 #include "ConsumerWorker.h"
 #include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
+#include "tags/ModbusTags.h"
 
 using nlohmann::json;
 
@@ -26,7 +27,7 @@ public:
 private:
     const std::shared_ptr<spdlog::logger> logger;
     std::string logger_name;
-    std::unordered_map<addr_t, std::array<std::string, 16>> bits_names;
+    ModbusTags tags;
     std::unordered_map<std::string, bool> current_alarms_status;
     std::unordered_map<std::string, bool> default_alarms_status;
 

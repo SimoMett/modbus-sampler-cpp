@@ -5,6 +5,7 @@
 #include "ConsumerWorker.h"
 #include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
+#include "tags/ModbusTags.h"
 
 #pragma once
 
@@ -14,9 +15,9 @@ class CsvWorker: public ConsumerWorker
 {
 public:
     static const std::string WORKER_VERSION;
-    
+
     CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags);
-    ~CsvWorker() override;
+    ~CsvWorker() override {};
 
     void start() override;
     void join() override;
@@ -33,11 +34,7 @@ private:
     const std::shared_ptr<spdlog::logger> logger;
     const std::filesystem::path output_dir;
     const std::chrono::milliseconds dump_time_ms;
-    std::unordered_map<addr_t, std::string> words_names;
-    std::unordered_map<addr_t, std::string> floats_names;
-    std::unordered_map<addr_t, std::string> dwords_names;
-    std::unordered_map<addr_t, std::string> coils_names;
-    std::unordered_map<addr_t, std::array<std::string, 16>> bits_names;
+    ModbusTags tags;
     unsigned int current_queue;
     std::unordered_map<std::string, std::vector<std::string>> samples_queues[2];
 

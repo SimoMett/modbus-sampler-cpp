@@ -2,9 +2,9 @@
 #include <chrono>
 #include <thread>
 
-#pragma once
+#include "tags/ModbusTags.h"
 
-typedef uint32_t addr_t;
+#pragma once
 
 template <typename T>
 struct AddressValue

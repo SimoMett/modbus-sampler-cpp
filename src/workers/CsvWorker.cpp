@@ -8,51 +8,9 @@ using simomett::MbValueType;
 
 const std::string CsvWorker::WORKER_VERSION = "CsvWorker build: 1";
 
-CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json tags) : logger(logger), output_dir(output_dir), dump_time_ms(static_cast<int>(dump_time_s * 1000)), current_queue(0)
+CsvWorker::CsvWorker(std::shared_ptr<spdlog::logger> logger, std::string output_dir, float dump_time_s, json _tags) : logger(logger), output_dir(output_dir), dump_time_ms(static_cast<int>(dump_time_s * 1000)), current_queue(0), tags(_tags)
 {
-    std::unordered_map<addr_t, std::string> *maps[4];
-    maps[MbValueType::WORD_TYPE] = &this->words_names;
-    maps[MbValueType::DWORD_TYPE] = &this->dwords_names;
-    maps[MbValueType::REAL_TYPE] = &this->floats_names;
-    maps[MbValueType::COIL_TYPE] = &this->coils_names;
 
-    std::string json_str[4];
-    json_str[MbValueType::WORD_TYPE] = "words";
-    json_str[MbValueType::DWORD_TYPE] = "dwords";
-    json_str[MbValueType::REAL_TYPE] = "floats";
-    json_str[MbValueType::COIL_TYPE] = "coils";
-
-    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE, MbValueType::COIL_TYPE})
-    {
-        if (!tags[json_str[v]].is_null())
-        {
-            for (json s : tags[json_str[v]])
-            {
-                maps[v]->insert({s["address"].get<addr_t>(),
-                                s["tag"].get<std::string>()});
-            }
-        }
-    }
-
-    // dedicated logic for parsing bits addresses and bitmasks.
-    if (!tags["bits"].is_null())
-    {
-        std::array<std::string, 16> rr;
-        for(int i=0; i<16; i++)
-        {
-            rr[i] = tags["bits"]["tags"][i].is_null() ? "" : tags["bits"]["tags"][i].get<std::string>();
-        }
-        bits_names.insert({tags["bits"]["address"].get<addr_t>(), rr});
-    }
-}
-
-CsvWorker::~CsvWorker()
-{
-    this->words_names.clear();
-    this->dwords_names.clear();
-    this->floats_names.clear();
-    this->coils_names.clear();
-    this->bits_names.clear();
 }
 
 void CsvWorker::start()
@@ -138,12 +96,12 @@ void CsvWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
 {
     for (AddressValue<uint16_t> &sample : samples)
     {
-        if (this->words_names.find(sample.address) == this->words_names.end())
+        if (this->tags.contain_address_in_words(sample.address))
         {
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->words_names[sample.address]); // also 'filename'
+        std::string tag_name = ConsumerWorker::format_name(this->tags.get_word_name(sample.address)); // also 'filename'
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
@@ -157,12 +115,12 @@ void CsvWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
 {
     for (AddressValue<float> &sample : samples)
     {
-        if (this->floats_names.find(sample.address) == this->floats_names.end())
+        if (this->tags.contain_address_in_floats(sample.address))
         {
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->floats_names[sample.address]); // also 'filename'
+        std::string tag_name = ConsumerWorker::format_name(this->tags.get_float_name(sample.address)); // also 'filename'
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
@@ -176,12 +134,12 @@ void CsvWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
 {
     for (AddressValue<uint32_t> &sample : samples)
     {
-        if (this->dwords_names.find(sample.address) == this->dwords_names.end())
+        if (this->tags.contain_address_in_dwords(sample.address))
         {
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->dwords_names[sample.address]); // also 'filename'
+        std::string tag_name = ConsumerWorker::format_name(this->tags.get_dword_name(sample.address)); // also 'filename'
 
         std::ostringstream csv_line;
         csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
@@ -194,10 +152,10 @@ void CsvWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono:
 {
     for (AddressValue<bool> &sample : samples)
     {
-        if (this->coils_names.find(sample.address) == this->coils_names.end())
+        if (this->tags.contain_address_in_coils(sample.address))
             continue;
 
-        std::string tag_name = ConsumerWorker::format_name(this->coils_names[sample.address]);
+        std::string tag_name = ConsumerWorker::format_name(this->tags.get_coil_name(sample.address));
 
         std::ostringstream csv_line;
         csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
@@ -211,12 +169,12 @@ void CsvWorker::push_bits(std::vector<BitAddressValue> samples, std::chrono::sys
     //FIXME: never used. Need testing.
     for (BitAddressValue &sample : samples)
     {
-        if (this->bits_names.find(sample.address) == this->bits_names.end())
+        if (this->tags.contain_address_in_bits(sample.address))
             continue;
 
         for(int i = 0; i < 16; i++)
         {
-            const std::string & bn = this->bits_names[sample.address][i];
+            const std::string & bn = this->tags.get_bit_name(sample.address, i);
             if(!bn.empty())
             {
                 std::string tag_name = ConsumerWorker::format_name(bn);

@@ -48,7 +48,7 @@ int main(int argc, char ** argv)
     argparse::ArgumentParser parser(program_name, "0.0a");
     parser.add_argument("--config").default_value("modbus_sampler_daemon_config.json").help("use different configuration file");
     parser.add_argument("--log").default_value("modbus_sampler_daemon.log").help("put logs in a different file");
-    parser.add_argument("tags_json").required();
+    parser.add_argument("tags_file").required();
 
     bool failed_to_parse_args = false;
     try
@@ -88,7 +88,9 @@ int main(int argc, char ** argv)
     {
         logger->info("Initializing..");
         json config_json = simomett::json_from_file(parser.get<std::string>("--config"));
-        json tags_json = simomett::json_from_file(parser.get<std::string>("tags_json"));
+        std::string tags_file_path = parser.get<std::string>("tags_file");
+        //tags_file_path.ends_with(".json");
+        json tags_json = simomett::json_from_file(parser.get<std::string>("tags_file"));
 
         // workers setup
         std::vector<std::shared_ptr<ConsumerWorker>> consumerWorkers;
@@ -180,8 +182,7 @@ int main(int argc, char ** argv)
     }
     catch (const std::exception &e)
     {
-        std::cout << e.what() << "\n";
-        logger->info(e.what());
+        logger->error(e.what());
     }
     return 0;
 }

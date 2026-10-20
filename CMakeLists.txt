@@ -17,7 +17,7 @@ find_package(SDL2 REQUIRED)
 include_directories(src/ include/ include/imgui/)
 
 if(WIN32)
-    link_libraries(winpthread)
+    link_libraries(Winpthread)
 endif()
 
 include(FetchContent)
@@ -29,6 +29,7 @@ FetchContent_Declare(modbuslib
 set(COMMON_SOURCE_CPP
     src/workers/ConsumerWorker.cpp
     src/workers/ModbusWorker.cpp
+    src/workers/tags/ModbusTags.cpp
     include/simomett/common.cpp
 )
 
