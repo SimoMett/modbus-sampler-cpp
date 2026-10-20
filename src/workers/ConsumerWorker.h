@@ -7,26 +7,6 @@
 #pragma once
 
 template <typename T>
-struct AddressValue
-{
-    addr_t address;
-    T val;
-};
-
-struct BitAddress
-{
-    addr_t address;
-    uint8_t bit;
-};
-
-struct BitAddressValue
-{
-    addr_t address;
-    uint8_t bit;
-    bool val;
-};
-
-template <typename T>
 concept RegisterValue = std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t> || std::is_same_v<T, float>;
 
 class ConsumerWorker

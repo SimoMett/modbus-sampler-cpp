@@ -96,7 +96,7 @@ void CsvWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
 {
     for (AddressValue<uint16_t> &sample : samples)
     {
-        if (this->tags.contain_address_in_words(sample.address))
+        if (std::find(this->tags.get_words_addresses().begin(), this->tags.get_words_addresses().end(), sample.address) != this->tags.get_words_addresses().end())
         {
             // std::cout << "address " << sample.address << " not found \n";
             continue;
@@ -115,7 +115,7 @@ void CsvWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
 {
     for (AddressValue<float> &sample : samples)
     {
-        if (this->tags.contain_address_in_floats(sample.address))
+        if (std::find(this->tags.get_floats_addresses().begin(), this->tags.get_floats_addresses().end(), sample.address) != this->tags.get_floats_addresses().end())
         {
             // std::cout << "address " << sample.address << " not found \n";
             continue;
@@ -134,7 +134,7 @@ void CsvWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
 {
     for (AddressValue<uint32_t> &sample : samples)
     {
-        if (this->tags.contain_address_in_dwords(sample.address))
+        if (std::find(this->tags.get_dwords_addresses().begin(), this->tags.get_dwords_addresses().end(), sample.address) != this->tags.get_dwords_addresses().end())
         {
             // std::cout << "address " << sample.address << " not found \n";
             continue;
@@ -152,7 +152,7 @@ void CsvWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono:
 {
     for (AddressValue<bool> &sample : samples)
     {
-        if (this->tags.contain_address_in_coils(sample.address))
+        if (std::find(this->tags.get_coils_addresses().begin(), this->tags.get_coils_addresses().end(), sample.address) != this->tags.get_coils_addresses().end())
             continue;
 
         std::string tag_name = ConsumerWorker::format_name(this->tags.get_coil_name(sample.address));
@@ -169,7 +169,7 @@ void CsvWorker::push_bits(std::vector<BitAddressValue> samples, std::chrono::sys
     //FIXME: never used. Need testing.
     for (BitAddressValue &sample : samples)
     {
-        if (this->tags.contain_address_in_bits(sample.address))
+        if (std::find(this->tags.get_bits_addresses().begin(), this->tags.get_bits_addresses().end(), sample.address) != this->tags.get_bits_addresses().end())
             continue;
 
         for(int i = 0; i < 16; i++)
