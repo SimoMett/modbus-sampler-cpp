@@ -1,7 +1,12 @@
+#pragma once
+
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+
 #include "cpp-httplib/httplib.h"
 #include "ConsumerWorker.h"
 #include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
+#include "tags/ModbusTags.h"
 
 using nlohmann::json;
 
@@ -33,26 +38,19 @@ protected:
     void dump_samples(){};
 
 private:
+    ModbusTags tags;
     std::string http_host;
     unsigned short http_port;
     bool use_tls;
     httplib::Server http_server;
 
-    std::unordered_map<std::string, addr_t> words_names;
     std::map<addr_t, uint16_t> words_values;
-
-    std::unordered_map<std::string, addr_t> floats_names;
     std::map<addr_t, float> float_values;
-
-    std::unordered_map<std::string, addr_t> dwords_names;
     std::map<addr_t, uint32_t> dwords_values;
-
-    std::unordered_map<std::string, addr_t> coils_names;
     std::map<addr_t, bool> coils_values;
-
-    std::unordered_map<std::string, BitAddress> bits_names;
     std::map<addr_t, uint16_t> bits_values;
 
+    bool check_auth(const httplib::Request &req, httplib::Response &res);
     void http_return_status(const httplib::Request &, httplib::Response &res);
     void http_handle_tags_request(const httplib::Request &, httplib::Response &res);
 };

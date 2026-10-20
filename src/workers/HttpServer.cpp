@@ -5,7 +5,7 @@ const std::string HttpServer::WORKER_VERSION = "Http server build: 1";
 
 using simomett::MbValueType;
 
-HttpServer::HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_conf, json tags): logger(logger)
+HttpServer::HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_conf, json tags): logger(logger), tags(tags)
 {
     for(const char * field : {"host", "port", "useTls"})
     {
@@ -24,56 +24,14 @@ HttpServer::HttpServer(std::shared_ptr<spdlog::logger> logger, json http_server_
     http_server.Get("/", [this](const httplib::Request &req, httplib::Response &res) { this->http_return_status(req, res); });
     http_server.Get("/tags/:tagname", [this](const httplib::Request &req, httplib::Response &res) { this->http_handle_tags_request(req, res); });
 
-    //Parse tag names
-    std::unordered_map<std::string, addr_t> *names_maps[4];
-    names_maps[MbValueType::WORD_TYPE] = &this->words_names;
-    names_maps[MbValueType::DWORD_TYPE] = &this->dwords_names;
-    names_maps[MbValueType::REAL_TYPE] = &this->floats_names;
-    names_maps[MbValueType::COIL_TYPE] = &this->coils_names;
-
-    std::string json_str[4];
-    json_str[MbValueType::WORD_TYPE] = "words";
-    json_str[MbValueType::DWORD_TYPE] = "dwords";
-    json_str[MbValueType::REAL_TYPE] = "floats";
-    json_str[MbValueType::COIL_TYPE] = "coils";
-
-    for (auto v : {MbValueType::WORD_TYPE, MbValueType::DWORD_TYPE, MbValueType::REAL_TYPE, MbValueType::COIL_TYPE})
-    {
-        if (!tags[json_str[v]].is_null())
-        {
-            for (json s : tags[json_str[v]])
-            {
-                std::string formatted_tag_name = ConsumerWorker::format_name(s["tag"].get<std::string>());
-                names_maps[v]->insert({formatted_tag_name, s["address"].get<addr_t>()});
-            }
-        }
-    }
-
-    for(auto e : this->words_names)
-        this->words_values.insert(std::pair<addr_t, uint16_t>(e.second, 0));
-    for(auto e : this->floats_names)
-        this->float_values.insert(std::pair<addr_t, float>(e.second, 0));
-    for(auto e : this->dwords_names)
-        this->dwords_values.insert(std::pair<addr_t, uint32_t>(e.second, 0));
-    for(auto e : this->coils_names)
-        this->coils_values.insert(std::pair<addr_t, bool>(e.second, 0));
-    
-    //Bits names
-    if (!tags["bits"].is_null())
-    {
-        for(auto j : tags["bits"])
-        {
-            for(uint8_t i=0; i<16; i++)
-            {
-                BitAddress bit_addr {j["address"].get<addr_t>(), i};
-                if(!j["tags"][i].is_null() && j["tags"][i] != "")
-                {
-                    std::string formatted_tag_name = ConsumerWorker::format_name(j["tags"][i].get<std::string>());
-                    bits_names.insert( {formatted_tag_name, bit_addr} );
-                }
-            }
-        }
-    }
+    for(auto e : this->tags.get_words_addresses())
+        this->words_values.insert(std::pair<addr_t, uint16_t>(e, 0));
+    for(auto e : this->tags.get_floats_addresses())
+        this->float_values.insert(std::pair<addr_t, float>(e, 0));
+    for(auto e : this->tags.get_dwords_addresses())
+        this->dwords_values.insert(std::pair<addr_t, uint32_t>(e, 0));
+    for(auto e : this->tags.get_coils_addresses())
+        this->coils_values.insert(std::pair<addr_t, bool>(e, 0));
 }
 
 void HttpServer::start()
@@ -155,8 +113,24 @@ void HttpServer::http_return_status(const httplib::Request &, httplib::Response 
     res.set_content(response.dump(), "application/json");
 }
 
+bool HttpServer::check_auth(const httplib::Request &req, httplib::Response &res)
+{
+    std::string client_creds = req.get_header_value("Authorization");
+
+    if(client_creds.empty() /* && bla bla bla */)
+    {
+        res.status = httplib::Unauthorized_401;
+        return false;
+    }
+
+    return false;
+}
+
 void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::Response &res)
 {
+    if(!check_auth(req, res))
+        return;
+
     std::string tag_name = req.path_params.at("tagname");
     logger->debug(std::format("Client {} requested tag '{}'", req.remote_addr, tag_name));
 
@@ -167,9 +141,9 @@ void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::
 
     unsigned int diag_tag_name_counts = 0;
 
-    if(this->words_names.contains(tag_name))
+    if(std::find(this->tags.get_words_names().begin(), this->tags.get_words_names().end(), tag_name) != this->tags.get_words_names().end())
     {
-        addr_t addr = this->words_names[tag_name];
+        addr_t addr = this->tags.get_word_addr(tag_name);
         response = {
             {"tagname", tag_name},
             {"value", this->words_values[addr]}
@@ -177,9 +151,9 @@ void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::
         diag_tag_name_counts++;
     }
 
-    if(this->floats_names.contains(tag_name))
+    if(std::find(this->tags.get_floats_names().begin(), this->tags.get_floats_names().end(), tag_name) != this->tags.get_floats_names().end())
     {
-        addr_t addr = this->floats_names[tag_name];
+        addr_t addr = this->tags.get_float_addr(tag_name);
         response = {
             {"tagname", tag_name},
             {"value", this->float_values[addr]}
@@ -187,9 +161,9 @@ void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::
         diag_tag_name_counts++;
     }
 
-    if(this->dwords_names.contains(tag_name))
+    if(std::find(this->tags.get_dwords_names().begin(), this->tags.get_dwords_names().end(), tag_name) != this->tags.get_dwords_names().end())
     {
-        addr_t addr = this->dwords_names[tag_name];
+        addr_t addr = this->tags.get_dword_addr(tag_name);
         response = {
             {"tagname", tag_name},
             {"value", this->dwords_values[addr]}
@@ -197,9 +171,9 @@ void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::
         diag_tag_name_counts++;
     }
 
-    if(this->coils_names.contains(tag_name))
+    if(std::find(this->tags.get_coils_names().begin(), this->tags.get_coils_names().end(), tag_name) != this->tags.get_coils_names().end())
     {
-        addr_t addr = this->coils_names[tag_name];
+        addr_t addr = this->tags.get_coil_addr(tag_name);
         response = {
             {"tagname", tag_name},
             {"value", this->coils_values[addr]}
@@ -207,9 +181,9 @@ void HttpServer::http_handle_tags_request(const httplib::Request &req, httplib::
         diag_tag_name_counts++;
     }
 
-    if(this->bits_names.contains(tag_name))
+    if(std::find(this->tags.get_bits_names().begin(), this->tags.get_bits_names().end(), tag_name) != this->tags.get_bits_names().end())
     {
-        BitAddress addr = this->bits_names[tag_name];
+        BitAddress addr = this->tags.get_bit_addr(tag_name);
         response = {
             {"tagname", tag_name},
             {"value", (int)((this->bits_values[addr.address] & (1 << addr.bit)) != 0)}
