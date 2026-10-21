@@ -4,7 +4,7 @@
 
 using simomett::MbValueType;
 
-ModbusTags::ModbusTags(json &tags)
+ModbusTags::ModbusTags(json &tags, bool format_tags)
 {
     std::string json_str[4];
     json_str[MbValueType::WORD_TYPE] = "words";
@@ -32,11 +32,11 @@ ModbusTags::ModbusTags(json &tags)
             {
                 maps[v]->insert({
                     s["address"].get<addr_t>(),
-                    s["tag"].get<std::string>()
+                    format_tags? format_name(s["tag"].get<std::string>()) : s["tag"].get<std::string>()
                 });
 
                 rev_maps[v]->insert({
-                    s["tag"].get<std::string>(),
+                    format_tags? format_name(s["tag"].get<std::string>()) : s["tag"].get<std::string>(),
                     s["address"].get<addr_t>()
                 });
             }
@@ -53,7 +53,7 @@ ModbusTags::ModbusTags(json &tags)
             {
                 if(j["tags"][i].is_string())
                 {
-                    rr[i] = j["tags"][i].get<std::string>();
+                    rr[i] = format_tags? format_name(j["tags"][i].get<std::string>()) : j["tags"][i].get<std::string>();
                     mapped_names_bits.insert({
                         rr[i],
                         {j["address"].get<addr_t>(), i}
@@ -151,4 +151,32 @@ const addr_t &ModbusTags::get_coil_addr(const std::string & name)
 const BitAddress &ModbusTags::get_bit_addr(const std::string & name)
 {
     return this->mapped_names_bits.at(name);
+}
+
+std::string ModbusTags::format_name(const std::string &name)
+{
+    std::string sss(name);
+
+    static const std::vector<int> forbidden_chars = {'.', ',', '(', ')', '[', ']', '#'};
+
+    // Remove all unwanted characters
+    sss.erase(std::remove_if(sss.begin(), sss.end(), [](unsigned char c)
+                   { return std::find(forbidden_chars.begin(), forbidden_chars.end(), c) != forbidden_chars.end(); }), sss.end());
+
+    sss.erase(std::remove_if(sss.begin(), sss.end(), [](unsigned short c)
+                   { return c == 0xb000; }), sss.end());
+
+    // Set everything to lowercase
+    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
+                   { return std::tolower(c); });
+
+    // Replace every '/' and '\' with '-'
+    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
+                   { return (c == '/' || c == '\\') ? '-' : c; });
+
+    // Replace every space with '_'
+    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
+                   { return c == ' ' ? '_' : c; });
+
+    return sss;
 }

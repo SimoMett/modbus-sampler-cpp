@@ -31,7 +31,7 @@ struct BitAddressValue
 class ModbusTags
 {
 public:
-    ModbusTags(json &tags);
+    ModbusTags(json &tags, bool format_tags = false);
 
     const std::string & get_word_name(addr_t);
     const std::string & get_float_name(addr_t);
@@ -56,6 +56,8 @@ public:
     const std::vector<std::string> & get_dwords_names() {return this->dwords_names;};
     const std::vector<std::string> & get_coils_names() {return this->coils_names;};
     const std::vector<std::string> & get_bits_names() {return this->bits_names;};
+
+    static std::string format_name(const std::string & name);
 
 private:
     std::unordered_map<addr_t, std::string> mapped_words_names;

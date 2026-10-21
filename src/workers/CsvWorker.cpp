@@ -101,7 +101,7 @@ void CsvWorker::push_words(std::vector<AddressValue<uint16_t>> samples, std::chr
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->tags.get_word_name(sample.address)); // also 'filename'
+        std::string tag_name = ModbusTags::format_name(this->tags.get_word_name(sample.address)); // also 'filename'
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
@@ -120,7 +120,7 @@ void CsvWorker::push_floats(std::vector<AddressValue<float>> samples, std::chron
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->tags.get_float_name(sample.address)); // also 'filename'
+        std::string tag_name = ModbusTags::format_name(this->tags.get_float_name(sample.address)); // also 'filename'
         // std::cout << tag_name << "\n";
 
         std::ostringstream csv_line;
@@ -139,7 +139,7 @@ void CsvWorker::push_dwords(std::vector<AddressValue<uint32_t>> samples, std::ch
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string tag_name = ConsumerWorker::format_name(this->tags.get_dword_name(sample.address)); // also 'filename'
+        std::string tag_name = ModbusTags::format_name(this->tags.get_dword_name(sample.address)); // also 'filename'
 
         std::ostringstream csv_line;
         csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
@@ -155,7 +155,7 @@ void CsvWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chrono:
         if (std::find(this->tags.get_coils_addresses().begin(), this->tags.get_coils_addresses().end(), sample.address) != this->tags.get_coils_addresses().end())
             continue;
 
-        std::string tag_name = ConsumerWorker::format_name(this->tags.get_coil_name(sample.address));
+        std::string tag_name = ModbusTags::format_name(this->tags.get_coil_name(sample.address));
 
         std::ostringstream csv_line;
         csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;
@@ -177,7 +177,7 @@ void CsvWorker::push_bits(std::vector<BitAddressValue> samples, std::chrono::sys
             const std::string & bn = this->tags.get_bit_name(sample.address, i);
             if(!bn.empty())
             {
-                std::string tag_name = ConsumerWorker::format_name(bn);
+                std::string tag_name = ModbusTags::format_name(bn);
 
                 std::ostringstream csv_line;
                 csv_line << simomett::format_time(instant, "%Y-%m-%d %H:%M:%S") << "," << sample.val;

@@ -29,5 +29,4 @@ protected:
     std::unique_ptr<std::thread> run_thread;
 
     virtual void dump_samples() = 0;
-    static std::string format_name(const std::string & name);
 };

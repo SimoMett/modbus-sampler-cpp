@@ -50,7 +50,7 @@ void PostgreWorker::push_generic(std::vector<AddressValue<T>> samples, std::chro
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string table_name = ConsumerWorker::format_name(tags_names[sample.address]); //also 'tag_name'
+        std::string table_name = ModbusTags::format_name(tags_names[sample.address]); //also 'tag_name'
         // std::cout << tag_name << "\n";
 
         std::stringstream query_line;
@@ -86,7 +86,7 @@ void PostgreWorker::push_coils(std::vector<AddressValue<bool>> samples, std::chr
             // std::cout << "address " << sample.address << " not found \n";
             continue;
         }
-        std::string table_name = ConsumerWorker::format_name(this->coils_names[sample.address]); //also 'tag_name'
+        std::string table_name = ModbusTags::format_name(this->coils_names[sample.address]); //also 'tag_name'
         // std::cout << tag_name << "\n";
 
         std::stringstream query_line;

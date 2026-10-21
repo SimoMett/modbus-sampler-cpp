@@ -41,7 +41,7 @@ ImGuiPlotter::ImGuiPlotter(std::shared_ptr<spdlog::logger> logger, std::string w
         {
             for (json s : tags[json_str[v]])
             {
-                std::string formatted_tag_name = ConsumerWorker::format_name(s["tag"].get<std::string>());
+                std::string formatted_tag_name = ModbusTags::format_name(s["tag"].get<std::string>());
 
                 maps[v]->insert({s["address"].get<addr_t>(), formatted_tag_name});
                 this->samples_queues.insert({formatted_tag_name, SamplesRingQueue(deque_max_len, v)});
