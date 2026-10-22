@@ -1,5 +1,6 @@
 #include <iostream>
 #include <format>
+#include <regex>
 #include "ModbusTags.h"
 
 using simomett::MbValueType;
@@ -155,28 +156,16 @@ const BitAddress &ModbusTags::get_bit_addr(const std::string & name)
 
 std::string ModbusTags::format_name(const std::string &name)
 {
-    std::string sss(name);
+    // AI generated
+    std::string sss = std::regex_replace(name, std::regex("[^a-zA-Z0-9]"), "_");
 
-    static const std::vector<int> forbidden_chars = {'.', ',', '(', ')', '[', ']', '#'};
+    sss = std::regex_replace(sss, std::regex("_+"), "_");
 
-    // Remove all unwanted characters
-    sss.erase(std::remove_if(sss.begin(), sss.end(), [](unsigned char c)
-                   { return std::find(forbidden_chars.begin(), forbidden_chars.end(), c) != forbidden_chars.end(); }), sss.end());
+    if (!sss.empty() && sss.front() == '_')
+        sss.erase(0, 1);
 
-    sss.erase(std::remove_if(sss.begin(), sss.end(), [](unsigned short c)
-                   { return c == 0xb000; }), sss.end());
-
-    // Set everything to lowercase
-    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
-                   { return std::tolower(c); });
-
-    // Replace every '/' and '\' with '-'
-    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
-                   { return (c == '/' || c == '\\') ? '-' : c; });
-
-    // Replace every space with '_'
-    std::transform(sss.begin(), sss.end(), sss.begin(), [](unsigned char c)
-                   { return c == ' ' ? '_' : c; });
+    if (!sss.empty() && sss.back() == '_')
+        sss.pop_back();
 
     return sss;
 }
